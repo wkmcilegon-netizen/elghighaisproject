@@ -111,6 +111,7 @@ export function useKasRealtime() {
       qc.invalidateQueries({ queryKey: ["expenses"] });
       qc.invalidateQueries({ queryKey: ["waivers"] });
       qc.invalidateQueries({ queryKey: ["change_logs"] });
+      qc.invalidateQueries({ queryKey: ["news"] });
       qc.invalidateQueries({ queryKey: ["kas_summary"] });
       qc.invalidateQueries({ queryKey: ["admin_contributions"] });
     };
