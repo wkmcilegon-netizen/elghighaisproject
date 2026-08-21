@@ -88,9 +88,10 @@ export function useSummary(month: number | null, year: number | null) {
     queryKey: ["kas_summary", month, year],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("kas_summary", {
-        p_month: month,
-        p_year: year,
+        p_month: month ?? undefined,
+        p_year: year ?? undefined,
       });
+
       if (error) throw error;
       return data as unknown as KasSummary;
     },
