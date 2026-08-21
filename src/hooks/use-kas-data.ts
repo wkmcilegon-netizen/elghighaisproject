@@ -7,6 +7,7 @@ import type {
   ContributionPublic,
   Expense,
   KasSummary,
+  News,
   Resident,
   Waiver,
 } from "@/lib/kas-shared";
@@ -110,6 +111,7 @@ export function useKasRealtime() {
       qc.invalidateQueries({ queryKey: ["expenses"] });
       qc.invalidateQueries({ queryKey: ["waivers"] });
       qc.invalidateQueries({ queryKey: ["change_logs"] });
+      qc.invalidateQueries({ queryKey: ["news"] });
       qc.invalidateQueries({ queryKey: ["kas_summary"] });
       qc.invalidateQueries({ queryKey: ["admin_contributions"] });
     };
@@ -126,4 +128,19 @@ export function useKasRealtime() {
       supabase.removeChannel(channel);
     };
   }, [qc]);
+}
+
+export function useNews() {
+  return useQuery({
+    queryKey: ["news"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("news")
+        .select("*")
+        .order("pinned", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as News[];
+    },
+  });
 }

@@ -9,6 +9,7 @@ import {
   KeyRound,
   Loader2,
   LogOut,
+  Megaphone,
   Pencil,
   Plus,
   Trash2,
@@ -38,6 +39,7 @@ import {
   useChangeLogs,
   useExpenses,
   useKasRealtime,
+  useNews,
   useResidents,
   useSummary,
   useWaivers,
@@ -51,11 +53,13 @@ import {
   adminResetPassword,
   deleteContribution,
   deleteExpense,
+  deleteNews,
   deleteResident,
   deleteWaiver,
   exportYear,
   listContributionsAdmin,
   saveExpense,
+  saveNews,
   saveResident,
   setContributionStatus,
   setOpeningBalance,
@@ -381,7 +385,7 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
         </Card>
 
         <Tabs defaultValue="setoran">
-          <TabsList className="grid h-auto w-full grid-cols-5 rounded-xl">
+          <TabsList className="grid h-auto w-full grid-cols-6 rounded-xl">
             <TabsTrigger value="setoran" className="text-[11px]">
               Setoran
             </TabsTrigger>
@@ -393,6 +397,9 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
             </TabsTrigger>
             <TabsTrigger value="hutang" className="text-[11px]">
               Hutang
+            </TabsTrigger>
+            <TabsTrigger value="berita" className="text-[11px]">
+              Berita
             </TabsTrigger>
             <TabsTrigger value="atur" className="text-[11px]">
               Atur
@@ -426,11 +433,164 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
             />
           </TabsContent>
 
+          <TabsContent value="berita">
+            <BeritaTab token={token} />
+          </TabsContent>
+
           <TabsContent value="atur">
             <AturTab token={token} onDone={refetchAll} logs={logs.data ?? []} />
           </TabsContent>
         </Tabs>
       </main>
+    </div>
+  );
+}
+
+/* ------------------------- BERITA ------------------------- */
+
+function BeritaTab({ token }: { token: string }) {
+  const news = useNews();
+  const rows = news.data ?? [];
+  const [editId, setEditId] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [pinned, setPinned] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  function reset() {
+    setEditId(null);
+    setTitle("");
+    setBody("");
+    setPinned(false);
+  }
+
+  async function simpan(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const r = await saveNews({ data: { token, id: editId, title, body, pinned } });
+      if (!r.ok) {
+        toast.error(r.message);
+        return;
+      }
+      toast.success(editId ? "Berita diperbarui." : "Berita diterbitkan.");
+      reset();
+      news.refetch();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function hapus(id: string) {
+    if (!window.confirm("Hapus berita ini?")) return;
+    await deleteNews({ data: { token, id } });
+    toast.success("Berita dihapus.");
+    if (editId === id) reset();
+    news.refetch();
+  }
+
+  return (
+    <div className="space-y-3">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Megaphone className="size-4 text-primary" />
+            {editId ? "Edit Berita" : "Tulis Berita untuk Warga"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={simpan} className="space-y-2">
+            <Input
+              className="h-11 rounded-xl"
+              placeholder="Judul berita"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={150}
+              required
+            />
+            <Textarea
+              rows={5}
+              className="rounded-xl"
+              placeholder="Isi berita / pengumuman untuk warga..."
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              maxLength={3000}
+              required
+            />
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                className="size-4 accent-[hsl(var(--primary))]"
+                checked={pinned}
+                onChange={(e) => setPinned(e.target.checked)}
+              />
+              Tandai sebagai berita penting (tampil paling atas)
+            </label>
+            <div className="flex gap-2">
+              <Button type="submit" className="h-11 flex-1 rounded-xl" disabled={busy}>
+                {busy ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Plus className="mr-2 size-4" />}
+                {editId ? "Simpan Perubahan" : "Terbitkan"}
+              </Button>
+              {editId && (
+                <Button type="button" variant="outline" className="h-11 rounded-xl" onClick={reset}>
+                  Batal
+                </Button>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Daftar Berita ({rows.length})</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="max-h-[480px] overflow-y-auto">
+            {rows.length === 0 && <p className="p-4 text-sm text-muted-foreground">Belum ada berita.</p>}
+            {rows.map((n) => (
+              <div key={n.id} className="border-b border-border/60 px-4 py-3 last:border-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-2 font-semibold">
+                      <span className="truncate">{n.title}</span>
+                      {n.pinned && <Badge className="shrink-0 text-[10px]">Penting</Badge>}
+                    </p>
+                    <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-xs text-muted-foreground">
+                      {n.body}
+                    </p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">{waktuID(n.created_at)}</p>
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-8"
+                      onClick={() => {
+                        setEditId(n.id);
+                        setTitle(n.title);
+                        setBody(n.body);
+                        setPinned(n.pinned);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      <Pencil className="size-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-8 text-destructive"
+                      onClick={() => hapus(n.id)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

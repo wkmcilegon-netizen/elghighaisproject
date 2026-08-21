@@ -5,6 +5,7 @@ import {
   Bell,
   Landmark,
   Loader2,
+  Megaphone,
   Send,
   ShieldCheck,
 } from "lucide-react";
@@ -26,6 +27,7 @@ import {
   useContributions,
   useExpenses,
   useKasRealtime,
+  useNews,
   useResidents,
   useSummary,
   useWaivers,
@@ -80,6 +82,7 @@ function Beranda() {
   const expenses = useExpenses();
   const waivers = useWaivers();
   const logs = useChangeLogs();
+  const news = useNews();
 
   const [fMonth, setFMonth] = useState<number | null>(null);
   const [fYear, setFYear] = useState<number | null>(null);
@@ -364,8 +367,11 @@ function Beranda() {
         </Card>
 
         {/* Tab data */}
-        <Tabs defaultValue="masuk">
-          <TabsList className="grid h-auto w-full grid-cols-4 rounded-xl">
+        <Tabs defaultValue="berita">
+          <TabsList className="grid h-auto w-full grid-cols-5 rounded-xl">
+            <TabsTrigger value="berita" className="text-xs">
+              Berita
+            </TabsTrigger>
             <TabsTrigger value="masuk" className="text-xs">
               Pemasukan
             </TabsTrigger>
@@ -379,6 +385,38 @@ function Beranda() {
               Catatan
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="berita">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Megaphone className="size-4 text-primary" /> Berita dari Pusat (
+                  {(news.data ?? []).length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="max-h-[520px] overflow-y-auto">
+                  {(news.data ?? []).length === 0 && (
+                    <p className="p-4 text-sm text-muted-foreground">Belum ada berita.</p>
+                  )}
+                  {(news.data ?? []).map((n) => (
+                    <article key={n.id} className="border-b border-border/60 px-4 py-3 last:border-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="font-semibold leading-snug">{n.title}</h3>
+                        {n.pinned && (
+                          <Badge className="shrink-0 text-[10px]">Penting</Badge>
+                        )}
+                      </div>
+                      <p className="mt-1 whitespace-pre-wrap text-sm text-foreground/90">{n.body}</p>
+                      <p className="mt-1.5 text-[11px] text-muted-foreground">
+                        {waktuID(n.created_at)}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="masuk">
             <Card>
