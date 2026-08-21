@@ -14,13 +14,265 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      admin_settings: {
+        Row: {
+          default_password: string
+          id: number
+          password: string
+          reset_code: string
+          updated_at: string
+        }
+        Insert: {
+          default_password?: string
+          id?: number
+          password?: string
+          reset_code?: string
+          updated_at?: string
+        }
+        Update: {
+          default_password?: string
+          id?: number
+          password?: string
+          reset_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      app_config: {
+        Row: {
+          id: number
+          opening_balance: number
+          opening_note: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          opening_balance?: number
+          opening_note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          opening_balance?: number
+          opening_note?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      change_logs: {
+        Row: {
+          action: string
+          created_at: string
+          description: string
+          entity: string
+          entity_label: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description: string
+          entity: string
+          entity_label?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string
+          entity?: string
+          entity_label?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: []
+      }
+      contributions: {
+        Row: {
+          admin_note: string | null
+          amount: number
+          created_at: string
+          id: string
+          method: string
+          note: string | null
+          period_month: number
+          period_year: number
+          purpose: string
+          resident_id: string | null
+          resident_name: string
+          sent_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          method: string
+          note?: string | null
+          period_month: number
+          period_year: number
+          purpose: string
+          resident_id?: string | null
+          resident_name: string
+          sent_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string
+          note?: string | null
+          period_month?: number
+          period_year?: number
+          purpose?: string
+          resident_id?: string | null
+          resident_name?: string
+          sent_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contributions_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          note: string | null
+          purpose: string
+          spend_date: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          purpose: string
+          spend_date?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          purpose?: string
+          spend_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      residents: {
+        Row: {
+          active: boolean
+          address: string | null
+          created_at: string
+          id: string
+          name: string
+          start_year: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          start_year?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          start_year?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      waivers: {
+        Row: {
+          created_at: string
+          id: string
+          period_month: number
+          period_year: number
+          reason: string | null
+          resident_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          period_month: number
+          period_year: number
+          reason?: string | null
+          resident_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          period_month?: number
+          period_year?: number
+          reason?: string | null
+          resident_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waivers_resident_id_fkey"
+            columns: ["resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      kas_summary: {
+        Args: { p_month?: number; p_year?: number }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
