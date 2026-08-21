@@ -7,6 +7,7 @@ import type {
   ContributionPublic,
   Expense,
   KasSummary,
+  News,
   Resident,
   Waiver,
 } from "@/lib/kas-shared";
