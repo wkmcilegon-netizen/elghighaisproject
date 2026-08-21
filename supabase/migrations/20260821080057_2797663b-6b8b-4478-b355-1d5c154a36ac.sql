@@ -1,0 +1,2 @@
+ALTER TABLE public.residents ADD COLUMN IF NOT EXISTS start_month integer NOT NULL DEFAULT 1;
+ALTER TABLE public.residents ADD CONSTRAINT residents_start_month_chk CHECK (start_month BETWEEN 1 AND 12);

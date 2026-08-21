@@ -233,6 +233,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          start_month: number
           start_year: number
           updated_at: string
         }
@@ -242,6 +243,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          start_month?: number
           start_year?: number
           updated_at?: string
         }
@@ -251,6 +253,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          start_month?: number
           start_year?: number
           updated_at?: string
         }
