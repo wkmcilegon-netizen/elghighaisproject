@@ -131,11 +131,11 @@ function Beranda() {
   async function kirim(e: React.FormEvent) {
     e.preventDefault();
     const nominal = Number(amount.replace(/[^\d]/g, ""));
-    if (!residentId) return toast.error("Pilih nama warga terlebih dahulu.");
-    if (!method || !purpose) return toast.error("Metode dan tujuan pengiriman wajib dipilih.");
-    if (!nominal || nominal <= 0) return toast.error("Nominal harus lebih dari 0.");
-    if (nominal > 1_000_000_000) return toast.error("Nominal terlalu besar.");
-    if (note.length > 300) return toast.error("Catatan maksimal 300 karakter.");
+    if (!residentId) { toast.error("Pilih nama warga terlebih dahulu."); return; }
+    if (!method || !purpose) { toast.error("Metode dan tujuan pengiriman wajib dipilih."); return; }
+    if (!nominal || nominal <= 0) { toast.error("Nominal harus lebih dari 0."); return; }
+    if (nominal > 1_000_000_000) { toast.error("Nominal terlalu besar."); return; }
+    if (note.length > 300) { toast.error("Catatan maksimal 300 karakter."); return; }
 
     const nama = residentOpts.find((o) => o.value === residentId)?.label ?? "";
     setSaving(true);
