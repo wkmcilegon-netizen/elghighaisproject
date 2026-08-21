@@ -119,13 +119,14 @@ export const saveResident = createServerFn({ method: "POST" })
         .select("*")
         .eq("id", data.id)
         .maybeSingle();
-      const patch: Record<string, unknown> = {
+      const patch = {
         name,
         address: data.address ?? null,
         active: data.active ?? true,
+        ...(data.start_year ? { start_year: data.start_year } : {}),
       };
-      if (data.start_year) patch['start_year'] = data.start_year;
       const { error } = await db.from("residents").update(patch).eq("id", data.id);
+
       if (error) throw new Error(error.message);
       await db.from("contributions").update({ resident_name: name }).eq("resident_id", data.id);
       if (old && old.name !== name) {
