@@ -174,3 +174,12 @@ export function computeUnpaid(
   }
   return rows.sort((a, b) => b.periods.length - a.periods.length);
 }
+
+export type News = {
+  id: string;
+  title: string;
+  body: string;
+  pinned: boolean;
+  created_at: string;
+  updated_at: string;
+};

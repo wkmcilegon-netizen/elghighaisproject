@@ -127,3 +127,18 @@ export function useKasRealtime() {
     };
   }, [qc]);
 }
+
+export function useNews() {
+  return useQuery({
+    queryKey: ["news"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("news")
+        .select("*")
+        .order("pinned", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as News[];
+    },
+  });
+}

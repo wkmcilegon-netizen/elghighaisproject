@@ -535,3 +535,64 @@ export const exportYear = createServerFn({ method: "POST" })
       .order("spend_date");
     return { masuk: masuk ?? [], keluar: keluar ?? [] };
   });
+
+/* ---------------- Berita ---------------- */
+
+export const saveNews = createServerFn({ method: "POST" })
+  .inputValidator(
+    (d: { token: string; id?: string | null; title: string; body: string; pinned?: boolean }) => d,
+  )
+  .handler(async ({ data }) => {
+    const { db, requireAdmin, writeLog } = await import("./admin.server");
+    await requireAdmin(data.token);
+    const title = data.title.trim();
+    const body = data.body.trim();
+    if (!title) return { ok: false as const, message: "Judul berita wajib diisi." };
+    if (!body) return { ok: false as const, message: "Isi berita wajib diisi." };
+
+    if (data.id) {
+      const { data: old } = await db.from("news").select("*").eq("id", data.id).maybeSingle();
+      const { error } = await db
+        .from("news")
+        .update({ title, body, pinned: data.pinned ?? false })
+        .eq("id", data.id);
+      if (error) throw new Error(error.message);
+      await writeLog({
+        entity: "berita",
+        entity_label: title,
+        action: "ubah",
+        description: `Pusat memperbarui berita "${old?.title ?? title}".`,
+        old_value: old?.body ?? null,
+        new_value: body,
+      });
+      return { ok: true as const };
+    }
+
+    const { error } = await db.from("news").insert({ title, body, pinned: data.pinned ?? false });
+    if (error) throw new Error(error.message);
+    await writeLog({
+      entity: "berita",
+      entity_label: title,
+      action: "tambah",
+      description: `Pusat menerbitkan berita baru: "${title}".`,
+      new_value: body,
+    });
+    return { ok: true as const };
+  });
+
+export const deleteNews = createServerFn({ method: "POST" })
+  .inputValidator((d: { token: string; id: string }) => d)
+  .handler(async ({ data }) => {
+    const { db, requireAdmin, writeLog } = await import("./admin.server");
+    await requireAdmin(data.token);
+    const { data: old } = await db.from("news").select("*").eq("id", data.id).maybeSingle();
+    const { error } = await db.from("news").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await writeLog({
+      entity: "berita",
+      entity_label: old?.title ?? "-",
+      action: "hapus",
+      description: `Pusat menghapus berita "${old?.title ?? "-"}".`,
+    });
+    return { ok: true as const };
+  });
