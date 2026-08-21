@@ -16,10 +16,12 @@ export const BULAN = [
 export const START_YEAR = 2022;
 /** Tahun mulai perhitungan tunggakan iuran */
 export const DEBT_START_YEAR = 2026;
+/** Tahun terakhir yang tersedia pada pilihan periode */
+export const END_YEAR = 2050;
 
 export function yearOptions(): number[] {
   const now = new Date().getFullYear();
-  const last = Math.max(now, DEBT_START_YEAR);
+  const last = Math.max(now, END_YEAR);
   const out: number[] = [];
   for (let y = START_YEAR; y <= last; y++) out.push(y);
   return out;
