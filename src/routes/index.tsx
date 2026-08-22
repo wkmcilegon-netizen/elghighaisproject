@@ -63,6 +63,12 @@ export const Route = createFileRoute("/")({
   component: Beranda,
 });
 
+/** Sembunyikan nominal setoran warga dari catatan publik. */
+function sensorNominal(text: string, entity: string) {
+  if (entity !== "setoran") return text;
+  return text.replace(/Rp\s?[\d.,]+/gi, "Rp •••").replace(/\b\d{4,}\b/g, "•••");
+}
+
 function StatusBadge({ status }: { status: string }) {
   if (status === "approved")
     return <Badge className="bg-primary text-primary-foreground">Lunas</Badge>;
