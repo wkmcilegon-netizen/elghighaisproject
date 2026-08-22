@@ -933,8 +933,28 @@ function WargaTab({
               onChange={(e) => setAddress(e.target.value)}
               maxLength={150}
             />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label className="text-[11px]">Bulan bergabung</Label>
+                <SearchSelect
+                  options={BULAN.map((b, i) => ({ value: String(i + 1), label: b }))}
+                  value={startMonth}
+                  onChange={setStartMonth}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[11px]">Tahun bergabung</Label>
+                <SearchSelect
+                  options={yearOptions()
+                    .filter((y) => y >= 2026)
+                    .map((y) => ({ value: String(y), label: String(y) }))}
+                  value={startYear}
+                  onChange={setStartYear}
+                />
+              </div>
+            </div>
             <p className="text-[11px] text-muted-foreground">
-              Warga baru hanya dihitung tunggakan mulai tahun {Math.max(2026, new Date().getFullYear())}.
+              Iuran mulai ditagihkan sejak {namaBulan(Number(startMonth))} {startYear}.
             </p>
             <Button type="submit" className="h-11 w-full rounded-xl" disabled={busy}>
               {busy ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Plus className="mr-2 size-4" />}
