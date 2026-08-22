@@ -316,8 +316,12 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
     [fMonth, fYear],
   );
 
+  const statusOrder: Record<string, number> = { pending: 0, rejected: 1, approved: 2 };
   const filteredContrib = useMemo(
-    () => (contribs.data ?? []).filter((c) => inPeriod(c.sent_date)),
+    () =>
+      (contribs.data ?? [])
+        .filter((c) => inPeriod(c.sent_date))
+        .sort((a, b) => (statusOrder[a.status] ?? 3) - (statusOrder[b.status] ?? 3)),
     [contribs.data, inPeriod],
   );
   const filteredExpenses = useMemo(
@@ -640,7 +644,7 @@ function SetoranTab({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Setoran Warga ({rows.length})</CardTitle>
+        <CardTitle className="text-sm">Setoran Warga</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="max-h-[560px] overflow-y-auto">
