@@ -644,7 +644,7 @@ function SetoranTab({
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Setoran Warga ({rows.length})</CardTitle>
+        <CardTitle className="text-sm">Setoran Warga</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="max-h-[560px] overflow-y-auto">
