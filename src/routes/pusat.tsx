@@ -986,7 +986,7 @@ function WargaTab({
                     {r.name} {!r.active && <span className="text-xs text-muted-foreground">(nonaktif)</span>}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
-                    {r.address || "—"} · mulai {r.start_year}
+                    {r.address || "—"} · mulai {namaBulan(r.start_month ?? 1)} {r.start_year}
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-1">
@@ -1035,13 +1035,21 @@ function EditWargaForm({
   onDone,
 }: {
   token: string;
-  row: { id: string; name: string; address: string | null; active: boolean; start_year: number };
+  row: {
+    id: string;
+    name: string;
+    address: string | null;
+    active: boolean;
+    start_year: number;
+    start_month?: number | null;
+  };
   onClose: () => void;
   onDone: () => void;
 }) {
   const [name, setName] = useState(row.name);
   const [address, setAddress] = useState(row.address ?? "");
   const [startYear, setStartYear] = useState(String(row.start_year));
+  const [startMonth, setStartMonth] = useState(String(row.start_month ?? 1));
   const [active, setActive] = useState(row.active);
   const [busy, setBusy] = useState(false);
 
