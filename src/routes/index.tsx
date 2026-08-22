@@ -541,7 +541,7 @@ function Beranda() {
                   )}
                   {(logs.data ?? []).map((l) => (
                     <div key={l.id} className="border-b border-border/60 px-4 py-3 last:border-0">
-                      <p className="text-sm">{l.description}</p>
+                      <p className="text-sm">{sensorNominal(l.description, l.entity)}</p>
                       <p className="mt-1 text-[11px] text-muted-foreground">
                         {waktuID(l.created_at)} · {l.entity}
                       </p>
