@@ -21,7 +21,7 @@ export function useResidents() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("residents")
-        .select("id,name,address,active,start_year,created_at")
+        .select("id,name,address,active,start_year,start_month,created_at")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Resident[];

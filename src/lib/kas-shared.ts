@@ -70,6 +70,7 @@ export type Resident = {
   address: string | null;
   active: boolean;
   start_year: number;
+  start_month?: number | null;
   created_at: string;
 };
 
@@ -158,11 +159,14 @@ export function computeUnpaid(
   const rows: UnpaidRow[] = [];
   for (const r of residents) {
     if (!r.active) continue;
-    const from = Math.max(DEBT_START_YEAR, r.start_year ?? DEBT_START_YEAR);
+    const rawYear = r.start_year ?? DEBT_START_YEAR;
+    const from = Math.max(DEBT_START_YEAR, rawYear);
+    const startMonth = rawYear >= DEBT_START_YEAR ? (r.start_month ?? 1) : 1;
     const periods: { month: number; year: number }[] = [];
     for (let y = from; y <= curYear; y++) {
       const lastMonth = y === curYear ? curMonth : 12;
-      for (let m = 1; m <= lastMonth; m++) {
+      const firstMonth = y === from ? startMonth : 1;
+      for (let m = firstMonth; m <= lastMonth; m++) {
         if (filter?.year && y !== filter.year) continue;
         if (filter?.month && m !== filter.month) continue;
         if (!paid.has(`${r.id}|${y}|${m}`)) periods.push({ month: m, year: y });
