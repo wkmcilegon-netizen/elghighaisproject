@@ -104,6 +104,7 @@ export const saveResident = createServerFn({ method: "POST" })
       address?: string | null;
       active?: boolean;
       start_year?: number | null;
+      start_month?: number | null;
     }) => d,
   )
   .handler(async ({ data }) => {
@@ -124,6 +125,7 @@ export const saveResident = createServerFn({ method: "POST" })
         address: data.address ?? null,
         active: data.active ?? true,
         ...(data.start_year ? { start_year: data.start_year } : {}),
+        ...(data.start_month ? { start_month: data.start_month } : {}),
       };
       const { error } = await db.from("residents").update(patch).eq("id", data.id);
 
@@ -150,18 +152,25 @@ export const saveResident = createServerFn({ method: "POST" })
     }
 
     const startYear = Math.max(2026, new Date().getFullYear());
+    const sYear = data.start_year ?? startYear;
+    const sMonth = Math.min(12, Math.max(1, data.start_month ?? 1));
+    const BULAN_ID = [
+      "Januari","Februari","Maret","April","Mei","Juni",
+      "Juli","Agustus","September","Oktober","November","Desember",
+    ];
     const { error } = await db.from("residents").insert({
       name,
       address: data.address ?? null,
       active: true,
-      start_year: data.start_year ?? startYear,
+      start_year: sYear,
+      start_month: sMonth,
     });
     if (error) throw new Error(error.message);
     await writeLog({
       entity: "warga",
       entity_label: name,
       action: "tambah",
-      description: `Warga baru "${name}" didaftarkan (iuran dihitung mulai tahun ${data.start_year ?? startYear}).`,
+      description: `Warga baru "${name}" didaftarkan (iuran dihitung mulai ${BULAN_ID[sMonth - 1]} ${sYear}).`,
     });
     return { ok: true as const };
   });

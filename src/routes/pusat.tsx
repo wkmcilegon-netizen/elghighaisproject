@@ -856,11 +856,20 @@ function WargaTab({
   onDone,
 }: {
   token: string;
-  residents: { id: string; name: string; address: string | null; active: boolean; start_year: number }[];
+  residents: {
+    id: string;
+    name: string;
+    address: string | null;
+    active: boolean;
+    start_year: number;
+    start_month?: number | null;
+  }[];
   onDone: () => void;
 }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [startMonth, setStartMonth] = useState(String(new Date().getMonth() + 1));
+  const [startYear, setStartYear] = useState(String(Math.max(2026, new Date().getFullYear())));
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState("");
   const [edit, setEdit] = useState<(typeof residents)[number] | null>(null);
@@ -869,7 +878,15 @@ function WargaTab({
     e.preventDefault();
     setBusy(true);
     try {
-      const r = await saveResident({ data: { token, name, address: address || null } });
+      const r = await saveResident({
+        data: {
+          token,
+          name,
+          address: address || null,
+          start_year: Number(startYear),
+          start_month: Number(startMonth),
+        },
+      });
       if (!r.ok) {
         toast.error(r.message);
         return;
@@ -916,8 +933,28 @@ function WargaTab({
               onChange={(e) => setAddress(e.target.value)}
               maxLength={150}
             />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                <Label className="text-[11px]">Bulan bergabung</Label>
+                <SearchSelect
+                  options={BULAN.map((b, i) => ({ value: String(i + 1), label: b }))}
+                  value={startMonth}
+                  onChange={setStartMonth}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[11px]">Tahun bergabung</Label>
+                <SearchSelect
+                  options={yearOptions()
+                    .filter((y) => y >= 2026)
+                    .map((y) => ({ value: String(y), label: String(y) }))}
+                  value={startYear}
+                  onChange={setStartYear}
+                />
+              </div>
+            </div>
             <p className="text-[11px] text-muted-foreground">
-              Warga baru hanya dihitung tunggakan mulai tahun {Math.max(2026, new Date().getFullYear())}.
+              Iuran mulai ditagihkan sejak {namaBulan(Number(startMonth))} {startYear}.
             </p>
             <Button type="submit" className="h-11 w-full rounded-xl" disabled={busy}>
               {busy ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Plus className="mr-2 size-4" />}
@@ -949,7 +986,7 @@ function WargaTab({
                     {r.name} {!r.active && <span className="text-xs text-muted-foreground">(nonaktif)</span>}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
-                    {r.address || "—"} · mulai {r.start_year}
+                    {r.address || "—"} · mulai {namaBulan(r.start_month ?? 1)} {r.start_year}
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-1">
@@ -998,13 +1035,21 @@ function EditWargaForm({
   onDone,
 }: {
   token: string;
-  row: { id: string; name: string; address: string | null; active: boolean; start_year: number };
+  row: {
+    id: string;
+    name: string;
+    address: string | null;
+    active: boolean;
+    start_year: number;
+    start_month?: number | null;
+  };
   onClose: () => void;
   onDone: () => void;
 }) {
   const [name, setName] = useState(row.name);
   const [address, setAddress] = useState(row.address ?? "");
   const [startYear, setStartYear] = useState(String(row.start_year));
+  const [startMonth, setStartMonth] = useState(String(row.start_month ?? 1));
   const [active, setActive] = useState(row.active);
   const [busy, setBusy] = useState(false);
 
@@ -1020,6 +1065,7 @@ function EditWargaForm({
           address: address || null,
           active,
           start_year: Number(startYear),
+          start_month: Number(startMonth),
         },
       });
       if (!r.ok) {
@@ -1044,14 +1090,27 @@ function EditWargaForm({
         <Label>Alamat</Label>
         <Input className="h-11 rounded-xl" value={address} onChange={(e) => setAddress(e.target.value)} />
       </div>
-      <div className="space-y-1.5">
-        <Label>Tunggakan dihitung mulai tahun</Label>
-        <SearchSelect
-          options={yearOptions().filter((y) => y >= 2026).map((y) => ({ value: String(y), label: String(y) }))}
-          value={startYear}
-          onChange={setStartYear}
-        />
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1.5">
+          <Label>Bulan bergabung</Label>
+          <SearchSelect
+            options={BULAN.map((b, i) => ({ value: String(i + 1), label: b }))}
+            value={startMonth}
+            onChange={setStartMonth}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Tahun bergabung</Label>
+          <SearchSelect
+            options={yearOptions().filter((y) => y >= 2026).map((y) => ({ value: String(y), label: String(y) }))}
+            value={startYear}
+            onChange={setStartYear}
+          />
+        </div>
       </div>
+      <p className="text-[11px] text-muted-foreground">
+        Iuran dihitung mulai {namaBulan(Number(startMonth))} {startYear}.
+      </p>
       <div className="flex items-center gap-2">
         <input
           id="aktif"
