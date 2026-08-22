@@ -856,11 +856,20 @@ function WargaTab({
   onDone,
 }: {
   token: string;
-  residents: { id: string; name: string; address: string | null; active: boolean; start_year: number }[];
+  residents: {
+    id: string;
+    name: string;
+    address: string | null;
+    active: boolean;
+    start_year: number;
+    start_month?: number | null;
+  }[];
   onDone: () => void;
 }) {
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [startMonth, setStartMonth] = useState(String(new Date().getMonth() + 1));
+  const [startYear, setStartYear] = useState(String(Math.max(2026, new Date().getFullYear())));
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState("");
   const [edit, setEdit] = useState<(typeof residents)[number] | null>(null);
@@ -869,7 +878,15 @@ function WargaTab({
     e.preventDefault();
     setBusy(true);
     try {
-      const r = await saveResident({ data: { token, name, address: address || null } });
+      const r = await saveResident({
+        data: {
+          token,
+          name,
+          address: address || null,
+          start_year: Number(startYear),
+          start_month: Number(startMonth),
+        },
+      });
       if (!r.ok) {
         toast.error(r.message);
         return;
