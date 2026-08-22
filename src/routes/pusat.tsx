@@ -316,8 +316,12 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
     [fMonth, fYear],
   );
 
+  const statusOrder: Record<string, number> = { pending: 0, rejected: 1, approved: 2 };
   const filteredContrib = useMemo(
-    () => (contribs.data ?? []).filter((c) => inPeriod(c.sent_date)),
+    () =>
+      (contribs.data ?? [])
+        .filter((c) => inPeriod(c.sent_date))
+        .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]),
     [contribs.data, inPeriod],
   );
   const filteredExpenses = useMemo(
