@@ -1065,6 +1065,7 @@ function EditWargaForm({
           address: address || null,
           active,
           start_year: Number(startYear),
+          start_month: Number(startMonth),
         },
       });
       if (!r.ok) {
@@ -1089,14 +1090,27 @@ function EditWargaForm({
         <Label>Alamat</Label>
         <Input className="h-11 rounded-xl" value={address} onChange={(e) => setAddress(e.target.value)} />
       </div>
-      <div className="space-y-1.5">
-        <Label>Tunggakan dihitung mulai tahun</Label>
-        <SearchSelect
-          options={yearOptions().filter((y) => y >= 2026).map((y) => ({ value: String(y), label: String(y) }))}
-          value={startYear}
-          onChange={setStartYear}
-        />
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1.5">
+          <Label>Bulan bergabung</Label>
+          <SearchSelect
+            options={BULAN.map((b, i) => ({ value: String(i + 1), label: b }))}
+            value={startMonth}
+            onChange={setStartMonth}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Tahun bergabung</Label>
+          <SearchSelect
+            options={yearOptions().filter((y) => y >= 2026).map((y) => ({ value: String(y), label: String(y) }))}
+            value={startYear}
+            onChange={setStartYear}
+          />
+        </div>
       </div>
+      <p className="text-[11px] text-muted-foreground">
+        Iuran dihitung mulai {namaBulan(Number(startMonth))} {startYear}.
+      </p>
       <div className="flex items-center gap-2">
         <input
           id="aktif"
