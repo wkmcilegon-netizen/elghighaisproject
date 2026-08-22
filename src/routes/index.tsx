@@ -63,6 +63,12 @@ export const Route = createFileRoute("/")({
   component: Beranda,
 });
 
+/** Sembunyikan nominal setoran warga dari catatan publik. */
+function sensorNominal(text: string, entity: string) {
+  if (entity !== "setoran") return text;
+  return text.replace(/Rp\s?[\d.,]+/gi, "Rp •••").replace(/\b\d{4,}\b/g, "•••");
+}
+
 function StatusBadge({ status }: { status: string }) {
   if (status === "approved")
     return <Badge className="bg-primary text-primary-foreground">Lunas</Badge>;
@@ -541,7 +547,7 @@ function Beranda() {
                   )}
                   {(logs.data ?? []).map((l) => (
                     <div key={l.id} className="border-b border-border/60 px-4 py-3 last:border-0">
-                      <p className="text-sm">{l.description}</p>
+                      <p className="text-sm">{sensorNominal(l.description, l.entity)}</p>
                       <p className="mt-1 text-[11px] text-muted-foreground">
                         {waktuID(l.created_at)} · {l.entity}
                       </p>
