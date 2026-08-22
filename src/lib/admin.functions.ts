@@ -104,6 +104,7 @@ export const saveResident = createServerFn({ method: "POST" })
       address?: string | null;
       active?: boolean;
       start_year?: number | null;
+      start_month?: number | null;
     }) => d,
   )
   .handler(async ({ data }) => {
