@@ -321,7 +321,7 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
     () =>
       (contribs.data ?? [])
         .filter((c) => inPeriod(c.sent_date))
-        .sort((a, b) => statusOrder[a.status] - statusOrder[b.status]),
+        .sort((a, b) => (statusOrder[a.status] ?? 3) - (statusOrder[b.status] ?? 3)),
     [contribs.data, inPeriod],
   );
   const filteredExpenses = useMemo(
