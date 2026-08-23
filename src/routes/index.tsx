@@ -326,31 +326,70 @@ function Beranda() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1.5">
-                  <Label>Bulan Iuran</Label>
-                  <SearchSelect
-                    options={BULAN.map((b, i) => ({ value: String(i + 1), label: b }))}
-                    value={month}
-                    onChange={setMonth}
-                    placeholder="Pilih bulan"
-                    searchPlaceholder="Cari bulan..."
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Tahun</Label>
-                  <SearchSelect
-                    options={yearOptions()
-                      .slice()
-                      .reverse()
-                      .map((y) => ({ value: String(y), label: String(y) }))}
-                    value={year}
-                    onChange={setYear}
-                    placeholder="Pilih tahun"
-                    searchPlaceholder="Cari tahun..."
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <Label>Tahun Iuran</Label>
+                <SearchSelect
+                  options={yearOptions()
+                    .slice()
+                    .reverse()
+                    .map((y) => ({ value: String(y), label: String(y) }))}
+                  value={year}
+                  onChange={(v) => {
+                    setYear(v);
+                    setMonths([]);
+                  }}
+                  placeholder="Pilih tahun"
+                  searchPlaceholder="Cari tahun..."
+                />
               </div>
+
+              <div className="space-y-1.5">
+                <Label>Bulan Iuran (bisa pilih lebih dari satu)</Label>
+                <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-card p-2">
+                  {BULAN.map((b, i) => {
+                    const m = i + 1;
+                    const sudah = paidMonths.has(m);
+                    const aktif = months.includes(m);
+                    return (
+                      <button
+                        key={b}
+                        type="button"
+                        disabled={sudah}
+                        onClick={() =>
+                          setMonths((prev) =>
+                            prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m],
+                          )
+                        }
+                        className={
+                          "flex items-center gap-1.5 rounded-lg border px-2 py-2 text-left text-xs transition " +
+                          (sudah
+                            ? "cursor-not-allowed border-border bg-muted text-muted-foreground line-through"
+                            : aktif
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-background hover:border-primary/60")
+                        }
+                      >
+                        <span
+                          className={
+                            "flex size-4 shrink-0 items-center justify-center rounded border " +
+                            (aktif ? "border-primary-foreground" : "border-muted-foreground/50")
+                          }
+                        >
+                          {aktif && <Check className="size-3" />}
+                        </span>
+                        <span className="truncate">{b.slice(0, 3)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {residentId
+                    ? "Bulan bertanda coret sudah dibayar/diajukan, tidak bisa dipilih lagi."
+                    : "Pilih nama warga dulu agar bulan yang sudah dibayar tertandai."}
+                  {months.length > 1 && ` · ${months.length} bulan dipilih.`}
+                </p>
+              </div>
+
 
               <div className="space-y-1.5">
                 <Label>Nama Warga</Label>
