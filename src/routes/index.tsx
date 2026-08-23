@@ -433,7 +433,10 @@ function Beranda() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="nominal">Nominal (Rp)</Label>
+                <Label htmlFor="nominal">
+                  Nominal (Rp){months.length > 1 ? " — total semua bulan terpilih" : ""}
+                </Label>
+
                 <Input
                   id="nominal"
                   inputMode="numeric"
