@@ -96,7 +96,7 @@ function Beranda() {
 
   const today = new Date();
   const [sentDate, setSentDate] = useState(today.toISOString().slice(0, 10));
-  const [month, setMonth] = useState<string>(String(today.getMonth() + 1));
+  const [months, setMonths] = useState<number[]>([today.getMonth() + 1]);
   const [year, setYear] = useState<string>(String(today.getFullYear()));
   const [residentId, setResidentId] = useState<string | null>(null);
   const [method, setMethod] = useState<string | null>("tunai");
@@ -109,6 +109,47 @@ function Beranda() {
     () => (residents.data ?? []).filter((r) => r.active).map((r) => ({ value: r.id, label: r.name })),
     [residents.data],
   );
+
+  /** Bulan yang sudah dibayar/diajukan warga terpilih pada tahun terpilih (agar tidak dobel). */
+  const paidMonths = useMemo(() => {
+    const set = new Set<number>();
+    if (!residentId || purpose !== "iuran") return set;
+    const y = Number(year);
+    for (const c of contributions.data ?? []) {
+      if (c.resident_id !== residentId) continue;
+      if (c.purpose !== "iuran") continue;
+      if (c.period_year !== y) continue;
+      if (c.status === "rejected") continue;
+      set.add(c.period_month);
+    }
+    for (const w of waivers.data ?? []) {
+      if (w.resident_id === residentId && w.period_year === y) set.add(w.period_month);
+    }
+    return set;
+  }, [residentId, purpose, year, contributions.data, waivers.data]);
+
+  /** Warga yang sudah membayar iuran untuk bulan-bulan ke depan. */
+  const prabayar = useMemo(() => {
+    const now = new Date();
+    const curKey = now.getFullYear() * 12 + now.getMonth() + 1;
+    const map = new Map<string, { name: string; key: number; month: number; year: number }>();
+    for (const c of contributions.data ?? []) {
+      if (c.status !== "approved" || c.purpose !== "iuran" || !c.resident_id) continue;
+      const key = c.period_year * 12 + c.period_month;
+      if (key <= curKey) continue;
+      const prev = map.get(c.resident_id);
+      if (!prev || key > prev.key) {
+        map.set(c.resident_id, {
+          name: c.resident_name,
+          key,
+          month: c.period_month,
+          year: c.period_year,
+        });
+      }
+    }
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [contributions.data]);
+
 
   const filteredContrib = useMemo(() => {
     return (contributions.data ?? []).filter((c) => {
