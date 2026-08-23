@@ -3,6 +3,8 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   Bell,
+  Check,
+
   Landmark,
   Loader2,
   Megaphone,
@@ -96,7 +98,7 @@ function Beranda() {
 
   const today = new Date();
   const [sentDate, setSentDate] = useState(today.toISOString().slice(0, 10));
-  const [month, setMonth] = useState<string>(String(today.getMonth() + 1));
+  const [months, setMonths] = useState<number[]>([today.getMonth() + 1]);
   const [year, setYear] = useState<string>(String(today.getFullYear()));
   const [residentId, setResidentId] = useState<string | null>(null);
   const [method, setMethod] = useState<string | null>("tunai");
@@ -109,6 +111,47 @@ function Beranda() {
     () => (residents.data ?? []).filter((r) => r.active).map((r) => ({ value: r.id, label: r.name })),
     [residents.data],
   );
+
+  /** Bulan yang sudah dibayar/diajukan warga terpilih pada tahun terpilih (agar tidak dobel). */
+  const paidMonths = useMemo(() => {
+    const set = new Set<number>();
+    if (!residentId || purpose !== "iuran") return set;
+    const y = Number(year);
+    for (const c of contributions.data ?? []) {
+      if (c.resident_id !== residentId) continue;
+      if (c.purpose !== "iuran") continue;
+      if (c.period_year !== y) continue;
+      if (c.status === "rejected") continue;
+      set.add(c.period_month);
+    }
+    for (const w of waivers.data ?? []) {
+      if (w.resident_id === residentId && w.period_year === y) set.add(w.period_month);
+    }
+    return set;
+  }, [residentId, purpose, year, contributions.data, waivers.data]);
+
+  /** Warga yang sudah membayar iuran untuk bulan-bulan ke depan. */
+  const prabayar = useMemo(() => {
+    const now = new Date();
+    const curKey = now.getFullYear() * 12 + now.getMonth() + 1;
+    const map = new Map<string, { name: string; key: number; month: number; year: number }>();
+    for (const c of contributions.data ?? []) {
+      if (c.status !== "approved" || c.purpose !== "iuran" || !c.resident_id) continue;
+      const key = c.period_year * 12 + c.period_month;
+      if (key <= curKey) continue;
+      const prev = map.get(c.resident_id);
+      if (!prev || key > prev.key) {
+        map.set(c.resident_id, {
+          name: c.resident_name,
+          key,
+          month: c.period_month,
+          year: c.period_year,
+        });
+      }
+    }
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [contributions.data]);
+
 
   const filteredContrib = useMemo(() => {
     return (contributions.data ?? []).filter((c) => {
@@ -141,34 +184,53 @@ function Beranda() {
     e.preventDefault();
     const nominal = Number(amount.replace(/[^\d]/g, ""));
     if (!residentId) { toast.error("Pilih nama warga terlebih dahulu."); return; }
+    if (months.length === 0) { toast.error("Pilih minimal satu bulan iuran."); return; }
     if (!method || !purpose) { toast.error("Metode dan tujuan pengiriman wajib dipilih."); return; }
     if (!nominal || nominal <= 0) { toast.error("Nominal harus lebih dari 0."); return; }
     if (nominal > 1_000_000_000) { toast.error("Nominal terlalu besar."); return; }
     if (note.length > 300) { toast.error("Catatan maksimal 300 karakter."); return; }
 
+    const dobel = months.filter((m) => paidMonths.has(m));
+    if (dobel.length > 0) {
+      toast.error(
+        `Bulan ${dobel.map((m) => namaBulan(m)).join(", ")} ${year} sudah dibayar. Pilih bulan lain.`,
+      );
+      return;
+    }
+
     const nama = residentOpts.find((o) => o.value === residentId)?.label ?? "";
+    const urut = [...months].sort((a, b) => a - b);
+    const per = Math.floor(nominal / urut.length);
+    const sisa = nominal - per * urut.length;
+
     setSaving(true);
-    const { error } = await supabase.from("contributions").insert({
-      resident_id: residentId,
-      resident_name: nama,
-      sent_date: sentDate,
-      period_month: Number(month),
-      period_year: Number(year),
-      method,
-      purpose,
-      amount: nominal,
-      note: note.trim() || null,
-    });
+    const { error } = await supabase.from("contributions").insert(
+      urut.map((m, i) => ({
+        resident_id: residentId,
+        resident_name: nama,
+        sent_date: sentDate,
+        period_month: m,
+        period_year: Number(year),
+        method,
+        purpose,
+        amount: per + (i === 0 ? sisa : 0),
+        note: note.trim() || null,
+      })),
+    );
     setSaving(false);
     if (error) {
       toast.error("Gagal mengirim: " + error.message);
       return;
     }
-    toast.success("Setoran terkirim. Menunggu konfirmasi pusat.");
+    toast.success(
+      `Setoran ${urut.length} bulan terkirim. Menunggu konfirmasi pusat.`,
+    );
     setAmount("");
     setNote("");
+    setMonths([]);
     contributions.refetch();
   }
+
 
   const s = summary.data;
 
@@ -266,31 +328,70 @@ function Beranda() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1.5">
-                  <Label>Bulan Iuran</Label>
-                  <SearchSelect
-                    options={BULAN.map((b, i) => ({ value: String(i + 1), label: b }))}
-                    value={month}
-                    onChange={setMonth}
-                    placeholder="Pilih bulan"
-                    searchPlaceholder="Cari bulan..."
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Tahun</Label>
-                  <SearchSelect
-                    options={yearOptions()
-                      .slice()
-                      .reverse()
-                      .map((y) => ({ value: String(y), label: String(y) }))}
-                    value={year}
-                    onChange={setYear}
-                    placeholder="Pilih tahun"
-                    searchPlaceholder="Cari tahun..."
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <Label>Tahun Iuran</Label>
+                <SearchSelect
+                  options={yearOptions()
+                    .slice()
+                    .reverse()
+                    .map((y) => ({ value: String(y), label: String(y) }))}
+                  value={year}
+                  onChange={(v) => {
+                    setYear(v);
+                    setMonths([]);
+                  }}
+                  placeholder="Pilih tahun"
+                  searchPlaceholder="Cari tahun..."
+                />
               </div>
+
+              <div className="space-y-1.5">
+                <Label>Bulan Iuran (bisa pilih lebih dari satu)</Label>
+                <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-card p-2">
+                  {BULAN.map((b, i) => {
+                    const m = i + 1;
+                    const sudah = paidMonths.has(m);
+                    const aktif = months.includes(m);
+                    return (
+                      <button
+                        key={b}
+                        type="button"
+                        disabled={sudah}
+                        onClick={() =>
+                          setMonths((prev) =>
+                            prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m],
+                          )
+                        }
+                        className={
+                          "flex items-center gap-1.5 rounded-lg border px-2 py-2 text-left text-xs transition " +
+                          (sudah
+                            ? "cursor-not-allowed border-border bg-muted text-muted-foreground line-through"
+                            : aktif
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-background hover:border-primary/60")
+                        }
+                      >
+                        <span
+                          className={
+                            "flex size-4 shrink-0 items-center justify-center rounded border " +
+                            (aktif ? "border-primary-foreground" : "border-muted-foreground/50")
+                          }
+                        >
+                          {aktif && <Check className="size-3" />}
+                        </span>
+                        <span className="truncate">{b.slice(0, 3)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  {residentId
+                    ? "Bulan bertanda coret sudah dibayar/diajukan, tidak bisa dipilih lagi."
+                    : "Pilih nama warga dulu agar bulan yang sudah dibayar tertandai."}
+                  {months.length > 1 && ` · ${months.length} bulan dipilih.`}
+                </p>
+              </div>
+
 
               <div className="space-y-1.5">
                 <Label>Nama Warga</Label>
@@ -332,7 +433,10 @@ function Beranda() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="nominal">Nominal (Rp)</Label>
+                <Label htmlFor="nominal">
+                  Nominal (Rp){months.length > 1 ? " — total semua bulan terpilih" : ""}
+                </Label>
+
                 <Input
                   id="nominal"
                   inputMode="numeric"
@@ -492,8 +596,31 @@ function Beranda() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="hutang">
+          <TabsContent value="hutang" className="space-y-3">
+            {prabayar.length > 0 && (
+              <Card className="border-primary/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Sudah Bayar di Muka ({prabayar.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="max-h-[260px] overflow-y-auto">
+                    {prabayar.map((p) => (
+                      <div
+                        key={p.name + p.key}
+                        className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-2.5 last:border-0"
+                      >
+                        <p className="truncate font-medium">{p.name}</p>
+                        <Badge className="shrink-0 bg-primary text-primary-foreground">
+                          Sudah bayar sampai {namaBulan(p.month)} {p.year}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             <Card>
+
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">Warga Belum Bayar ({unpaid.length})</CardTitle>
                 <p className="text-xs text-muted-foreground">
