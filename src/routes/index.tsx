@@ -596,8 +596,31 @@ function Beranda() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="hutang">
+          <TabsContent value="hutang" className="space-y-3">
+            {prabayar.length > 0 && (
+              <Card className="border-primary/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Sudah Bayar di Muka ({prabayar.length})</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="max-h-[260px] overflow-y-auto">
+                    {prabayar.map((p) => (
+                      <div
+                        key={p.name + p.key}
+                        className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-2.5 last:border-0"
+                      >
+                        <p className="truncate font-medium">{p.name}</p>
+                        <Badge className="shrink-0 bg-primary text-primary-foreground">
+                          Sudah bayar sampai {namaBulan(p.month)} {p.year}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             <Card>
+
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">Warga Belum Bayar ({unpaid.length})</CardTitle>
                 <p className="text-xs text-muted-foreground">
