@@ -182,34 +182,53 @@ function Beranda() {
     e.preventDefault();
     const nominal = Number(amount.replace(/[^\d]/g, ""));
     if (!residentId) { toast.error("Pilih nama warga terlebih dahulu."); return; }
+    if (months.length === 0) { toast.error("Pilih minimal satu bulan iuran."); return; }
     if (!method || !purpose) { toast.error("Metode dan tujuan pengiriman wajib dipilih."); return; }
     if (!nominal || nominal <= 0) { toast.error("Nominal harus lebih dari 0."); return; }
     if (nominal > 1_000_000_000) { toast.error("Nominal terlalu besar."); return; }
     if (note.length > 300) { toast.error("Catatan maksimal 300 karakter."); return; }
 
+    const dobel = months.filter((m) => paidMonths.has(m));
+    if (dobel.length > 0) {
+      toast.error(
+        `Bulan ${dobel.map((m) => namaBulan(m)).join(", ")} ${year} sudah dibayar. Pilih bulan lain.`,
+      );
+      return;
+    }
+
     const nama = residentOpts.find((o) => o.value === residentId)?.label ?? "";
+    const urut = [...months].sort((a, b) => a - b);
+    const per = Math.floor(nominal / urut.length);
+    const sisa = nominal - per * urut.length;
+
     setSaving(true);
-    const { error } = await supabase.from("contributions").insert({
-      resident_id: residentId,
-      resident_name: nama,
-      sent_date: sentDate,
-      period_month: Number(month),
-      period_year: Number(year),
-      method,
-      purpose,
-      amount: nominal,
-      note: note.trim() || null,
-    });
+    const { error } = await supabase.from("contributions").insert(
+      urut.map((m, i) => ({
+        resident_id: residentId,
+        resident_name: nama,
+        sent_date: sentDate,
+        period_month: m,
+        period_year: Number(year),
+        method,
+        purpose,
+        amount: per + (i === 0 ? sisa : 0),
+        note: note.trim() || null,
+      })),
+    );
     setSaving(false);
     if (error) {
       toast.error("Gagal mengirim: " + error.message);
       return;
     }
-    toast.success("Setoran terkirim. Menunggu konfirmasi pusat.");
+    toast.success(
+      `Setoran ${urut.length} bulan terkirim. Menunggu konfirmasi pusat.`,
+    );
     setAmount("");
     setNote("");
+    setMonths([]);
     contributions.refetch();
   }
+
 
   const s = summary.data;
 
