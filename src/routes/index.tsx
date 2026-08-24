@@ -476,8 +476,11 @@ function Beranda() {
           </CardContent>
         </Card>
 
+        <NewsNotify />
+
         {/* Tab data */}
         <Tabs defaultValue="berita">
+
           <TabsList className="grid h-auto w-full grid-cols-5 rounded-xl">
             <TabsTrigger value="berita" className="text-xs">
               Berita
