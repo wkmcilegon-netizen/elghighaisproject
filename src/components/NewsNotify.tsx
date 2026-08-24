@@ -35,8 +35,8 @@ export function NewsNotify() {
         await savePushSubscription({
           data: {
             endpoint: existing.endpoint,
-            p256dh: json.keys?.p256dh ?? "",
-            auth: json.keys?.auth ?? "",
+            p256dh: json.keys?.['p256dh'] ?? "",
+            auth: json.keys?.['auth'] ?? "",
           },
         });
         return;
@@ -76,8 +76,8 @@ export function NewsNotify() {
       await savePushSubscription({
         data: {
           endpoint: sub.endpoint,
-          p256dh: json.keys?.p256dh ?? "",
-          auth: json.keys?.auth ?? "",
+          p256dh: json.keys?.['p256dh'] ?? "",
+          auth: json.keys?.['auth'] ?? "",
         },
       });
       localStorage.setItem(DISMISS_KEY, "1");
