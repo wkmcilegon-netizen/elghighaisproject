@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PusatRouteImport } from './routes/pusat'
+import { Route as ApiPublicLatestNewsRouteImport } from './routes/api/public/latest-news'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const PusatRoute = PusatRouteImport.update({
   path: '/pusat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicLatestNewsRoute = ApiPublicLatestNewsRouteImport.update({
+  id: '/api/public/latest-news',
+  path: '/api/public/latest-news',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/pusat': typeof PusatRoute
+  '/api/public/latest-news': typeof ApiPublicLatestNewsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/pusat': typeof PusatRoute
+  '/api/public/latest-news': typeof ApiPublicLatestNewsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/pusat': typeof PusatRoute
+  '/api/public/latest-news': typeof ApiPublicLatestNewsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pusat'
+  fullPaths: '/' | '/pusat' | '/api/public/latest-news'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pusat'
-  id: '__root__' | '/' | '/pusat'
+  to: '/' | '/pusat' | '/api/public/latest-news'
+  id: '__root__' | '/' | '/pusat' | '/api/public/latest-news'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PusatRoute: typeof PusatRoute
+  ApiPublicLatestNewsRoute: typeof ApiPublicLatestNewsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PusatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/latest-news': {
+      id: '/api/public/latest-news'
+      path: '/api/public/latest-news'
+      fullPath: '/api/public/latest-news'
+      preLoaderRoute: typeof ApiPublicLatestNewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PusatRoute: PusatRoute,
+  ApiPublicLatestNewsRoute: ApiPublicLatestNewsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -15,7 +15,9 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import logo from "@/assets/logo-rt.png";
+import { NewsNotify } from "@/components/NewsNotify";
 import { PeriodFilter } from "@/components/PeriodFilter";
+
 import { SearchSelect } from "@/components/SearchSelect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -476,8 +478,11 @@ function Beranda() {
           </CardContent>
         </Card>
 
+        <NewsNotify />
+
         {/* Tab data */}
         <Tabs defaultValue="berita">
+
           <TabsList className="grid h-auto w-full grid-cols-5 rounded-xl">
             <TabsTrigger value="berita" className="text-xs">
               Berita
