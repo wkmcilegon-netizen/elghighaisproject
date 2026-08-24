@@ -586,7 +586,14 @@ export const saveNews = createServerFn({ method: "POST" })
       description: `Pusat menerbitkan berita baru: "${title}".`,
       new_value: body,
     });
+    try {
+      const { sendNewsPush } = await import("./push.server");
+      await sendNewsPush();
+    } catch (err) {
+      console.error("push berita gagal", err);
+    }
     return { ok: true as const };
+
   });
 
 export const deleteNews = createServerFn({ method: "POST" })
