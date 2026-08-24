@@ -15,7 +15,9 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import logo from "@/assets/logo-rt.png";
+import { NewsNotify } from "@/components/NewsNotify";
 import { PeriodFilter } from "@/components/PeriodFilter";
+
 import { SearchSelect } from "@/components/SearchSelect";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
