@@ -483,7 +483,7 @@ function Beranda() {
         {/* Tab data */}
         <Tabs defaultValue="berita">
 
-          <TabsList className="grid h-auto w-full grid-cols-5 rounded-xl">
+          <TabsList className="grid h-auto w-full grid-cols-4 rounded-xl">
             <TabsTrigger value="berita" className="text-xs">
               Berita
             </TabsTrigger>
@@ -493,13 +493,11 @@ function Beranda() {
             <TabsTrigger value="keluar" className="text-xs">
               Pengeluaran
             </TabsTrigger>
-            <TabsTrigger value="hutang" className="text-xs">
-              Belum Bayar
-            </TabsTrigger>
             <TabsTrigger value="catatan" className="text-xs">
               Catatan
             </TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="berita">
             <Card>
