@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BelumBayarRouteImport } from './routes/belum-bayar'
 import { Route as PusatRouteImport } from './routes/pusat'
 import { Route as ApiPublicLatestNewsRouteImport } from './routes/api/public/latest-news'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BelumBayarRoute = BelumBayarRouteImport.update({
+  id: '/belum-bayar',
+  path: '/belum-bayar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PusatRoute = PusatRouteImport.update({
@@ -31,30 +37,34 @@ const ApiPublicLatestNewsRoute = ApiPublicLatestNewsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/belum-bayar': typeof BelumBayarRoute
   '/pusat': typeof PusatRoute
   '/api/public/latest-news': typeof ApiPublicLatestNewsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/belum-bayar': typeof BelumBayarRoute
   '/pusat': typeof PusatRoute
   '/api/public/latest-news': typeof ApiPublicLatestNewsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/belum-bayar': typeof BelumBayarRoute
   '/pusat': typeof PusatRoute
   '/api/public/latest-news': typeof ApiPublicLatestNewsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pusat' | '/api/public/latest-news'
+  fullPaths: '/' | '/belum-bayar' | '/pusat' | '/api/public/latest-news'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pusat' | '/api/public/latest-news'
-  id: '__root__' | '/' | '/pusat' | '/api/public/latest-news'
+  to: '/' | '/belum-bayar' | '/pusat' | '/api/public/latest-news'
+  id: '__root__' | '/' | '/belum-bayar' | '/pusat' | '/api/public/latest-news'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BelumBayarRoute: typeof BelumBayarRoute
   PusatRoute: typeof PusatRoute
   ApiPublicLatestNewsRoute: typeof ApiPublicLatestNewsRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/belum-bayar': {
+      id: '/belum-bayar'
+      path: '/belum-bayar'
+      fullPath: '/belum-bayar'
+      preLoaderRoute: typeof BelumBayarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pusat': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BelumBayarRoute: BelumBayarRoute,
   PusatRoute: PusatRoute,
   ApiPublicLatestNewsRoute: ApiPublicLatestNewsRoute,
 }

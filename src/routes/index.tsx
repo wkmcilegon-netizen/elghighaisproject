@@ -601,69 +601,8 @@ function Beranda() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="hutang" className="space-y-3">
-            {prabayar.length > 0 && (
-              <Card className="border-primary/30">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Sudah Bayar di Muka ({prabayar.length})</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="max-h-[260px] overflow-y-auto">
-                    {prabayar.map((p) => (
-                      <div
-                        key={p.name + p.key}
-                        className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-2.5 last:border-0"
-                      >
-                        <p className="truncate font-medium">{p.name}</p>
-                        <Badge className="shrink-0 bg-primary text-primary-foreground">
-                          Sudah bayar sampai {namaBulan(p.month)} {p.year}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            <Card>
 
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Warga Belum Bayar ({unpaid.length})</CardTitle>
-                <p className="text-xs text-muted-foreground">
-                  Dihitung mulai tahun 2026 (atau tahun warga mulai terdaftar).
-                </p>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="max-h-[520px] overflow-y-auto">
-                  {unpaid.length === 0 && (
-                    <p className="p-4 text-sm text-muted-foreground">
-                      Tidak ada tunggakan pada periode ini.
-                    </p>
-                  )}
-                  {unpaid.map((u) => (
-                    <div
-                      key={u.resident_id}
-                      className="border-b border-border/60 px-4 py-3 last:border-0"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate font-semibold">{u.resident_name}</p>
-                        <Badge variant="destructive">{u.periods.length} bulan</Badge>
-                      </div>
-                      <div className="mt-1.5 flex flex-wrap gap-1">
-                        {u.periods.map((p) => (
-                          <span
-                            key={`${p.year}-${p.month}`}
-                            className="rounded-md bg-muted px-1.5 py-0.5 text-[11px]"
-                          >
-                            {namaBulan(p.month).slice(0, 3)} {p.year}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+
 
           <TabsContent value="catatan">
             <Card>
