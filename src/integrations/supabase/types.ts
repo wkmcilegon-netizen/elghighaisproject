@@ -199,6 +199,71 @@ export type Database = {
         }
         Relationships: []
       }
+      kegiatan: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      kegiatan_media: {
+        Row: {
+          created_at: string
+          id: string
+          kegiatan_id: string
+          kind: string
+          path: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kegiatan_id: string
+          kind?: string
+          path: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kegiatan_id?: string
+          kind?: string
+          path?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kegiatan_media_kegiatan_id_fkey"
+            columns: ["kegiatan_id"]
+            isOneToOne: false
+            referencedRelation: "kegiatan"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news: {
         Row: {
           body: string
