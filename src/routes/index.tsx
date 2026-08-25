@@ -480,6 +480,19 @@ function Beranda() {
 
         <NewsNotify />
 
+        <Button asChild variant="outline" className="h-12 w-full justify-between rounded-xl">
+          <Link to="/belum-bayar">
+            <span className="flex items-center gap-2 font-semibold">
+              <ListChecks className="size-4 text-destructive" /> Daftar Warga Belum Bayar
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {unpaid.length} warga · Buka halaman
+            </span>
+          </Link>
+        </Button>
+
+
+
         {/* Tab data */}
         <Tabs defaultValue="berita">
 
