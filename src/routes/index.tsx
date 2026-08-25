@@ -134,27 +134,8 @@ function Beranda() {
     return set;
   }, [residentId, purpose, year, contributions.data, waivers.data]);
 
-  /** Warga yang sudah membayar iuran untuk bulan-bulan ke depan. */
-  const prabayar = useMemo(() => {
-    const now = new Date();
-    const curKey = now.getFullYear() * 12 + now.getMonth() + 1;
-    const map = new Map<string, { name: string; key: number; month: number; year: number }>();
-    for (const c of contributions.data ?? []) {
-      if (c.status !== "approved" || c.purpose !== "iuran" || !c.resident_id) continue;
-      const key = c.period_year * 12 + c.period_month;
-      if (key <= curKey) continue;
-      const prev = map.get(c.resident_id);
-      if (!prev || key > prev.key) {
-        map.set(c.resident_id, {
-          name: c.resident_name,
-          key,
-          month: c.period_month,
-          year: c.period_year,
-        });
-      }
-    }
-    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }, [contributions.data]);
+
+
 
 
   const filteredContrib = useMemo(() => {
