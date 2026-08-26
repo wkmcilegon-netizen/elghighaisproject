@@ -4,6 +4,7 @@ import {
   ArrowUpCircle,
   Bell,
   Check,
+  Images,
 
   Landmark,
   ListChecks,
