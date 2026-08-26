@@ -126,3 +126,43 @@ export const deleteKegiatanMedia = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true as const };
   });
+
+/** Daftar kegiatan warga beserta foto/video (bisa dilihat semua warga) */
+export const listKegiatanPublic = createServerFn({ method: "GET" }).handler(async () => {
+  const { db } = await import("./admin.server");
+  const { data: rows, error } = await db
+    .from("kegiatan")
+    .select("id,title,year,description,created_at")
+    .order("year", { ascending: false })
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+
+  const { data: media } = await db
+    .from("kegiatan_media")
+    .select("id,kegiatan_id,path,kind,sort_order")
+    .order("sort_order");
+
+  const paths = (media ?? []).map((m) => m.path);
+  const signedMap = new Map<string, string>();
+  if (paths.length > 0) {
+    const { data: signed } = await db.storage.from("kegiatan").createSignedUrls(paths, 60 * 60 * 6);
+    for (const s of signed ?? []) {
+      if (s.path && s.signedUrl) signedMap.set(s.path, s.signedUrl);
+    }
+  }
+
+  return (rows ?? []).map((k) => ({
+    id: k.id as string,
+    title: k.title as string,
+    year: k.year as number,
+    description: (k.description ?? null) as string | null,
+    created_at: k.created_at as string,
+    media: (media ?? [])
+      .filter((m) => m.kegiatan_id === k.id)
+      .map((m) => ({
+        id: m.id as string,
+        kind: (m.kind ?? "image") as "image" | "video",
+        url: signedMap.get(m.path) ?? "",
+      })),
+  }));
+});
