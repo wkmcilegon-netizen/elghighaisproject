@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { listKegiatanPublic } from "@/lib/kegiatan.functions";
 import type {
   ChangeLog,
   ContributionPublic,
@@ -112,6 +113,7 @@ export function useKasRealtime() {
       qc.invalidateQueries({ queryKey: ["waivers"] });
       qc.invalidateQueries({ queryKey: ["change_logs"] });
       qc.invalidateQueries({ queryKey: ["news"] });
+      qc.invalidateQueries({ queryKey: ["kegiatan"] });
       qc.invalidateQueries({ queryKey: ["kas_summary"] });
       qc.invalidateQueries({ queryKey: ["admin_contributions"] });
     };
@@ -142,5 +144,21 @@ export function useNews() {
       if (error) throw error;
       return (data ?? []) as News[];
     },
+  });
+}
+
+export type KegiatanItem = {
+  id: string;
+  title: string;
+  year: number;
+  description: string | null;
+  created_at: string;
+  media: { id: string; kind: "image" | "video"; url: string }[];
+};
+
+export function useKegiatan() {
+  return useQuery({
+    queryKey: ["kegiatan"],
+    queryFn: async () => (await listKegiatanPublic()) as KegiatanItem[],
   });
 }
