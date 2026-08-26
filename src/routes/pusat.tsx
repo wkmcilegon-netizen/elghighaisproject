@@ -9,6 +9,7 @@ import {
   KeyRound,
   Loader2,
   LogOut,
+  Images,
   Megaphone,
   Pencil,
   Plus,
@@ -44,6 +45,14 @@ import {
   useSummary,
   useWaivers,
 } from "@/hooks/use-kas-data";
+import {
+  addKegiatanMedia,
+  createKegiatanUpload,
+  deleteKegiatan,
+  deleteKegiatanMedia,
+  saveKegiatan,
+} from "@/lib/kegiatan.functions";
+import { useKegiatan } from "@/hooks/use-kas-data";
 import {
   addWaiver,
   adminChangePassword,
@@ -389,7 +398,7 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
         </Card>
 
         <Tabs defaultValue="setoran">
-          <TabsList className="grid h-auto w-full grid-cols-6 rounded-xl">
+          <TabsList className="grid h-auto w-full grid-cols-4 rounded-xl">
             <TabsTrigger value="setoran" className="text-[11px]">
               Setoran
             </TabsTrigger>
@@ -404,6 +413,9 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
             </TabsTrigger>
             <TabsTrigger value="berita" className="text-[11px]">
               Berita
+            </TabsTrigger>
+            <TabsTrigger value="kegiatan" className="text-[11px]">
+              Kegiatan
             </TabsTrigger>
             <TabsTrigger value="atur" className="text-[11px]">
               Atur
@@ -441,11 +453,268 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
             <BeritaTab token={token} />
           </TabsContent>
 
+          <TabsContent value="kegiatan">
+            <KegiatanTab token={token} />
+          </TabsContent>
+
           <TabsContent value="atur">
             <AturTab token={token} onDone={refetchAll} logs={logs.data ?? []} />
           </TabsContent>
         </Tabs>
       </main>
+    </div>
+  );
+}
+
+/* ------------------------- KEGIATAN ------------------------- */
+
+function KegiatanTab({ token }: { token: string }) {
+  const kegiatan = useKegiatan();
+  const rows = kegiatan.data ?? [];
+  const [editId, setEditId] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [year, setYear] = useState<number>(new Date().getFullYear());
+  const [description, setDescription] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  function reset() {
+    setEditId(null);
+    setTitle("");
+    setYear(new Date().getFullYear());
+    setDescription("");
+  }
+
+  async function simpan(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const r = await saveKegiatan({
+        data: { token, id: editId, title, year, description: description || null },
+      });
+      if (!r.ok) {
+        toast.error(r.message);
+        return;
+      }
+      toast.success(editId ? "Kegiatan diperbarui." : "Kegiatan ditambahkan.");
+      reset();
+      kegiatan.refetch();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function hapus(id: string) {
+    if (!window.confirm("Hapus kegiatan ini beserta seluruh foto/videonya?")) return;
+    await deleteKegiatan({ data: { token, id } });
+    toast.success("Kegiatan dihapus.");
+    if (editId === id) reset();
+    kegiatan.refetch();
+  }
+
+  async function unggah(kegiatanId: string, files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(kegiatanId);
+    try {
+      for (const file of Array.from(files)) {
+        const up = await createKegiatanUpload({
+          data: { token, kegiatanId, fileName: file.name },
+        });
+        const { error } = await supabase.storage
+          .from("kegiatan")
+          .uploadToSignedUrl(up.path, up.token, file);
+        if (error) {
+          toast.error(`Gagal mengunggah ${file.name}: ${error.message}`);
+          continue;
+        }
+        await addKegiatanMedia({
+          data: {
+            token,
+            kegiatanId,
+            path: up.path,
+            kind: file.type.startsWith("video") ? "video" : "image",
+          },
+        });
+      }
+      toast.success("Foto/video berhasil diunggah.");
+      kegiatan.refetch();
+    } finally {
+      setUploading(null);
+    }
+  }
+
+  async function hapusMedia(id: string) {
+    if (!window.confirm("Hapus file ini?")) return;
+    await deleteKegiatanMedia({ data: { token, id } });
+    toast.success("File dihapus.");
+    kegiatan.refetch();
+  }
+
+  return (
+    <div className="space-y-3">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Images className="size-4 text-primary" />
+            {editId ? "Edit Kegiatan" : "Tambah Kegiatan Warga"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={simpan} className="space-y-2">
+            <Input
+              className="h-11 rounded-xl"
+              placeholder="Judul kegiatan"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={150}
+              required
+            />
+            <div className="space-y-1.5">
+              <Label>Tahun Kegiatan</Label>
+              <SearchSelect
+                options={yearOptions()
+                  .slice()
+                  .reverse()
+                  .map((y) => ({ value: String(y), label: String(y) }))}
+                value={String(year)}
+                onChange={(v) => setYear(Number(v))}
+                placeholder="Pilih tahun"
+                searchPlaceholder="Cari tahun..."
+              />
+            </div>
+            <Textarea
+              rows={3}
+              className="rounded-xl"
+              placeholder="Keterangan kegiatan (opsional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={2000}
+            />
+            <div className="flex gap-2">
+              <Button type="submit" className="h-11 flex-1 rounded-xl" disabled={busy}>
+                {busy ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <Plus className="mr-2 size-4" />
+                )}
+                {editId ? "Simpan Perubahan" : "Tambah Kegiatan"}
+              </Button>
+              {editId && (
+                <Button type="button" variant="outline" className="h-11 rounded-xl" onClick={reset}>
+                  Batal
+                </Button>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Daftar Kegiatan ({rows.length})</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 p-3">
+          {rows.length === 0 && (
+            <p className="text-sm text-muted-foreground">Belum ada kegiatan.</p>
+          )}
+          {rows.map((k) => (
+            <div key={k.id} className="rounded-xl border border-border/60 p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2 font-semibold">
+                    <span className="truncate">{k.title}</span>
+                    <Badge variant="secondary" className="shrink-0 text-[10px]">
+                      {k.year}
+                    </Badge>
+                  </p>
+                  {k.description && (
+                    <p className="mt-0.5 line-clamp-2 whitespace-pre-wrap text-xs text-muted-foreground">
+                      {k.description}
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-8"
+                    onClick={() => {
+                      setEditId(k.id);
+                      setTitle(k.title);
+                      setYear(k.year);
+                      setDescription(k.description ?? "");
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-8 text-destructive"
+                    onClick={() => hapus(k.id)}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              {k.media.length > 0 && (
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {k.media.map((m) => (
+                    <div key={m.id} className="relative">
+                      {m.kind === "video" ? (
+                        <video
+                          src={m.url}
+                          className="aspect-square w-full rounded-lg bg-muted object-cover"
+                        />
+                      ) : (
+                        <img
+                          src={m.url}
+                          alt={`Dokumentasi ${k.title}`}
+                          loading="lazy"
+                          className="aspect-square w-full rounded-lg bg-muted object-cover"
+                        />
+                      )}
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        className="absolute right-1 top-1 size-6"
+                        onClick={() => hapusMedia(m.id)}
+                      >
+                        <X className="size-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <label className="mt-2 flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-border text-xs font-medium">
+                {uploading === k.id ? (
+                  <>
+                    <Loader2 className="size-3.5 animate-spin" /> Mengunggah...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="size-3.5" /> Unggah Foto / Video
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  className="hidden"
+                  disabled={uploading === k.id}
+                  onChange={(e) => {
+                    void unggah(k.id, e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }
