@@ -134,6 +134,7 @@ export function useKasRealtime() {
       qc.invalidateQueries({ queryKey: ["news"] });
       qc.invalidateQueries({ queryKey: ["kegiatan"] });
       qc.invalidateQueries({ queryKey: ["kas_summary"] });
+      qc.invalidateQueries({ queryKey: ["kasbon_summary"] });
       qc.invalidateQueries({ queryKey: ["admin_contributions"] });
     };
 
