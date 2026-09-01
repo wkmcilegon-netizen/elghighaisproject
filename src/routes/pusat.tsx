@@ -436,7 +436,12 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
           </TabsContent>
 
           <TabsContent value="kas">
-            <KasKeluarTab token={token} rows={filteredExpenses} onDone={refetchAll} />
+            <KasKeluarTab
+              token={token}
+              rows={filteredExpenses}
+              residents={residents.data ?? []}
+              onDone={refetchAll}
+            />
           </TabsContent>
 
           <TabsContent value="hutang">
@@ -1095,6 +1100,7 @@ function EditSetoranForm({
             options={[
               { value: "iuran", label: "Iuran" },
               { value: "sumbangan", label: "Sumbangan" },
+              { value: "kasbon", label: "Kasbon" },
             ]}
             value={purpose}
             onChange={setPurpose}
