@@ -1409,21 +1409,37 @@ function EditWargaForm({
 
 /* ------------------------- KAS KELUAR ------------------------- */
 
+type ExpenseRow = {
+  id: string;
+  spend_date: string;
+  purpose: string;
+  amount: number;
+  note: string | null;
+  is_kasbon?: boolean | null;
+  kasbon_resident_id?: string | null;
+  kasbon_resident_name?: string | null;
+};
+
 function KasKeluarTab({
   token,
   rows,
+  residents,
   onDone,
 }: {
   token: string;
-  rows: { id: string; spend_date: string; purpose: string; amount: number; note: string | null }[];
+  rows: ExpenseRow[];
+  residents: { id: string; name: string }[];
   onDone: () => void;
 }) {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [mode, setMode] = useState<string | null>("manual");
+  const [kasbonId, setKasbonId] = useState<string | null>(null);
   const [purpose, setPurpose] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [edit, setEdit] = useState<(typeof rows)[number] | null>(null);
+  const [edit, setEdit] = useState<ExpenseRow | null>(null);
+
 
   async function tambah(e: React.FormEvent) {
     e.preventDefault();
