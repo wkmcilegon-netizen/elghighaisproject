@@ -59,7 +59,26 @@ export function useExpenses() {
   });
 }
 
+export type KasbonSummaryRow = {
+  resident_id: string;
+  resident_name: string | null;
+  total: number;
+  dibayar: number;
+};
+
+export function useKasbon() {
+  return useQuery({
+    queryKey: ["kasbon_summary"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("kasbon_summary");
+      if (error) throw error;
+      return (data ?? []) as unknown as KasbonSummaryRow[];
+    },
+  });
+}
+
 export function useWaivers() {
+
   return useQuery({
     queryKey: ["waivers"],
     queryFn: async () => {
