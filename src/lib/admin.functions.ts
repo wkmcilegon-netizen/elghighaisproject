@@ -355,12 +355,29 @@ export const saveExpense = createServerFn({ method: "POST" })
       purpose: string;
       amount: number;
       note?: string | null;
+      is_kasbon?: boolean;
+      kasbon_resident_id?: string | null;
     }) => d,
   )
   .handler(async ({ data }) => {
     const { db, requireAdmin, writeLog, rp } = await import("./admin.server");
     await requireAdmin(data.token);
-    const purpose = data.purpose.trim();
+    const isKasbon = data.is_kasbon === true;
+    let kasbonId: string | null = null;
+    let kasbonName: string | null = null;
+    if (isKasbon) {
+      if (!data.kasbon_resident_id)
+        return { ok: false as const, message: "Pilih nama warga penerima kasbon." };
+      const { data: r } = await db
+        .from("residents")
+        .select("id,name")
+        .eq("id", data.kasbon_resident_id)
+        .maybeSingle();
+      if (!r) return { ok: false as const, message: "Warga tidak ditemukan." };
+      kasbonId = r.id;
+      kasbonName = r.name;
+    }
+    const purpose = isKasbon ? `Kasbon ${kasbonName}` : data.purpose.trim();
     if (!purpose) return { ok: false as const, message: "Tujuan penggunaan wajib diisi." };
     if (data.amount < 0) return { ok: false as const, message: "Nominal tidak valid." };
 
@@ -373,6 +390,9 @@ export const saveExpense = createServerFn({ method: "POST" })
           purpose,
           amount: data.amount,
           note: data.note ?? null,
+          is_kasbon: isKasbon,
+          kasbon_resident_id: kasbonId,
+          kasbon_resident_name: kasbonName,
         })
         .eq("id", data.id);
       if (error) throw new Error(error.message);
@@ -401,13 +421,18 @@ export const saveExpense = createServerFn({ method: "POST" })
       purpose,
       amount: data.amount,
       note: data.note ?? null,
+      is_kasbon: isKasbon,
+      kasbon_resident_id: kasbonId,
+      kasbon_resident_name: kasbonName,
     });
     if (error) throw new Error(error.message);
     await writeLog({
       entity: "pengeluaran",
       entity_label: purpose,
       action: "tambah",
-      description: `Penggunaan kas baru: "${purpose}" sebesar ${rp(data.amount)} pada ${data.spend_date}.`,
+      description: isKasbon
+        ? `Kasbon untuk ${kasbonName} sebesar ${rp(data.amount)} pada ${data.spend_date}.`
+        : `Penggunaan kas baru: "${purpose}" sebesar ${rp(data.amount)} pada ${data.spend_date}.`,
       new_value: rp(data.amount),
     });
     return { ok: true as const };

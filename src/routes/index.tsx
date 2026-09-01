@@ -429,6 +429,7 @@ function Beranda() {
                     options={[
                       { value: "iuran", label: "Iuran" },
                       { value: "sumbangan", label: "Sumbangan" },
+                      { value: "kasbon", label: "Kasbon (bayar pinjaman)" },
                     ]}
                     value={purpose}
                     onChange={setPurpose}
