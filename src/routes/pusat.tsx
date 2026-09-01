@@ -1443,15 +1443,22 @@ function KasKeluarTab({
 
   async function tambah(e: React.FormEvent) {
     e.preventDefault();
+    const isKasbon = mode === "kasbon";
+    if (isKasbon && !kasbonId) {
+      toast.error("Pilih nama warga penerima kasbon.");
+      return;
+    }
     setBusy(true);
     try {
       const r = await saveExpense({
         data: {
           token,
           spend_date: date,
-          purpose,
+          purpose: isKasbon ? "Kasbon" : purpose,
           amount: Number(amount || 0),
           note: note || null,
+          is_kasbon: isKasbon,
+          kasbon_resident_id: isKasbon ? kasbonId : null,
         },
       });
       if (!r.ok) {
@@ -1462,6 +1469,7 @@ function KasKeluarTab({
       setPurpose("");
       setAmount("");
       setNote("");
+      setKasbonId(null);
       onDone();
     } finally {
       setBusy(false);
@@ -1484,14 +1492,34 @@ function KasKeluarTab({
         <CardContent>
           <form onSubmit={tambah} className="space-y-2">
             <Input type="date" className="h-11 rounded-xl" value={date} onChange={(e) => setDate(e.target.value)} required />
-            <Input
-              className="h-11 rounded-xl"
-              placeholder="Tujuan penggunaan"
-              value={purpose}
-              onChange={(e) => setPurpose(e.target.value)}
-              maxLength={150}
-              required
+            <SearchSelect
+              options={[
+                { value: "manual", label: "Ketik manual" },
+                { value: "kasbon", label: "Kasbon (warga)" },
+              ]}
+              value={mode}
+              onChange={setMode}
+              placeholder="Pilih tujuan pengeluaran"
             />
+            {mode === "kasbon" ? (
+              <SearchSelect
+                options={residents.map((r) => ({ value: r.id, label: r.name }))}
+                value={kasbonId}
+                onChange={setKasbonId}
+                placeholder="Cari nama warga kasbon"
+                searchPlaceholder="Ketik nama..."
+              />
+            ) : (
+              <Input
+                className="h-11 rounded-xl"
+                placeholder="Tujuan penggunaan"
+                value={purpose}
+                onChange={(e) => setPurpose(e.target.value)}
+                maxLength={150}
+                required
+              />
+            )}
+
             <Input
               inputMode="numeric"
               className="h-11 rounded-xl"
