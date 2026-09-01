@@ -98,7 +98,50 @@ export type Expense = {
   amount: number;
   note: string | null;
   created_at: string;
+  is_kasbon?: boolean | null;
+  kasbon_resident_id?: string | null;
+  kasbon_resident_name?: string | null;
 };
+
+export type KasbonRow = {
+  resident_id: string;
+  resident_name: string;
+  total: number;
+  dibayar: number;
+  sisa: number;
+};
+
+/** Hitung sisa kasbon tiap warga: total kasbon dari pusat − setoran kasbon yang sudah dikonfirmasi. */
+export function computeKasbon(
+  expenses: Expense[],
+  contributions: ContributionPublic[],
+  amounts?: Record<string, number>,
+): KasbonRow[] {
+  const map = new Map<string, KasbonRow>();
+  for (const e of expenses) {
+    if (!e.is_kasbon || !e.kasbon_resident_id) continue;
+    const id = e.kasbon_resident_id;
+    const cur =
+      map.get(id) ??
+      { resident_id: id, resident_name: e.kasbon_resident_name ?? "-", total: 0, dibayar: 0, sisa: 0 };
+    cur.total += Number(e.amount ?? 0);
+    map.set(id, cur);
+  }
+  for (const c of contributions) {
+    if (c.purpose !== "kasbon" || c.status !== "approved" || !c.resident_id) continue;
+    const cur = map.get(c.resident_id);
+    if (!cur) continue;
+    const amt = (c as { amount?: number }).amount ?? amounts?.[c.id] ?? 0;
+    cur.dibayar += Number(amt);
+  }
+  const rows: KasbonRow[] = [];
+  for (const r of map.values()) {
+    r.sisa = Math.max(0, r.total - r.dibayar);
+    if (r.sisa > 0) rows.push(r);
+  }
+  return rows.sort((a, b) => b.sisa - a.sisa);
+}
+
 
 export type Waiver = {
   id: string;
