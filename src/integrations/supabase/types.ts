@@ -174,6 +174,9 @@ export type Database = {
           amount: number
           created_at: string
           id: string
+          is_kasbon: boolean
+          kasbon_resident_id: string | null
+          kasbon_resident_name: string | null
           note: string | null
           purpose: string
           spend_date: string
@@ -183,6 +186,9 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          is_kasbon?: boolean
+          kasbon_resident_id?: string | null
+          kasbon_resident_name?: string | null
           note?: string | null
           purpose: string
           spend_date?: string
@@ -192,12 +198,23 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: string
+          is_kasbon?: boolean
+          kasbon_resident_id?: string | null
+          kasbon_resident_name?: string | null
           note?: string | null
           purpose?: string
           spend_date?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "expenses_kasbon_resident_id_fkey"
+            columns: ["kasbon_resident_id"]
+            isOneToOne: false
+            referencedRelation: "residents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kegiatan: {
         Row: {
