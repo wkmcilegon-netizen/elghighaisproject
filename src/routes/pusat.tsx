@@ -1582,7 +1582,13 @@ function KasKeluarTab({
             <DialogTitle>Edit Penggunaan Kas</DialogTitle>
           </DialogHeader>
           {edit && (
-            <EditExpenseForm token={token} row={edit} onClose={() => setEdit(null)} onDone={onDone} />
+            <EditExpenseForm
+              token={token}
+              row={edit}
+              residents={residents}
+              onClose={() => setEdit(null)}
+              onDone={onDone}
+            />
           )}
         </DialogContent>
       </Dialog>
@@ -1593,15 +1599,19 @@ function KasKeluarTab({
 function EditExpenseForm({
   token,
   row,
+  residents,
   onClose,
   onDone,
 }: {
   token: string;
-  row: { id: string; spend_date: string; purpose: string; amount: number; note: string | null };
+  row: ExpenseRow;
+  residents: { id: string; name: string }[];
   onClose: () => void;
   onDone: () => void;
 }) {
   const [date, setDate] = useState(row.spend_date);
+  const [mode, setMode] = useState<string | null>(row.is_kasbon ? "kasbon" : "manual");
+  const [kasbonId, setKasbonId] = useState<string | null>(row.kasbon_resident_id ?? null);
   const [purpose, setPurpose] = useState(row.purpose);
   const [amount, setAmount] = useState(String(Number(row.amount)));
   const [note, setNote] = useState(row.note ?? "");
@@ -1609,6 +1619,11 @@ function EditExpenseForm({
 
   async function simpan(e: React.FormEvent) {
     e.preventDefault();
+    const isKasbon = mode === "kasbon";
+    if (isKasbon && !kasbonId) {
+      toast.error("Pilih nama warga penerima kasbon.");
+      return;
+    }
     setBusy(true);
     try {
       const r = await saveExpense({
@@ -1616,9 +1631,11 @@ function EditExpenseForm({
           token,
           id: row.id,
           spend_date: date,
-          purpose,
+          purpose: isKasbon ? "Kasbon" : purpose,
           amount: Number(amount || 0),
           note: note || null,
+          is_kasbon: isKasbon,
+          kasbon_resident_id: isKasbon ? kasbonId : null,
         },
       });
       if (!r.ok) {
@@ -1636,7 +1653,24 @@ function EditExpenseForm({
   return (
     <form onSubmit={simpan} className="space-y-3">
       <Input type="date" className="h-11 rounded-xl" value={date} onChange={(e) => setDate(e.target.value)} />
-      <Input className="h-11 rounded-xl" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+      <SearchSelect
+        options={[
+          { value: "manual", label: "Ketik manual" },
+          { value: "kasbon", label: "Kasbon (warga)" },
+        ]}
+        value={mode}
+        onChange={setMode}
+      />
+      {mode === "kasbon" ? (
+        <SearchSelect
+          options={residents.map((r) => ({ value: r.id, label: r.name }))}
+          value={kasbonId}
+          onChange={setKasbonId}
+          placeholder="Cari nama warga kasbon"
+        />
+      ) : (
+        <Input className="h-11 rounded-xl" value={purpose} onChange={(e) => setPurpose(e.target.value)} />
+      )}
       <Input
         inputMode="numeric"
         className="h-11 rounded-xl"
@@ -1644,6 +1678,7 @@ function EditExpenseForm({
         onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ""))}
       />
       <Textarea rows={2} className="rounded-xl" value={note} onChange={(e) => setNote(e.target.value)} />
+
       <Button type="submit" className="h-11 w-full rounded-xl" disabled={busy}>
         {busy && <Loader2 className="mr-2 size-4 animate-spin" />} Simpan
       </Button>
