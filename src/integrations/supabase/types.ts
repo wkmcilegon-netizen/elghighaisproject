@@ -409,6 +409,7 @@ export type Database = {
         Args: { p_month?: number; p_year?: number }
         Returns: Json
       }
+      kasbon_summary: { Args: never; Returns: Json }
     }
     Enums: {
       [_ in never]: never
