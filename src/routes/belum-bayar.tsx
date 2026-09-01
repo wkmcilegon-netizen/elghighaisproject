@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   useContributions,
+  useKasbon,
   useKasRealtime,
   useResidents,
   useWaivers,
 } from "@/hooks/use-kas-data";
-import { computeUnpaid, namaBulan } from "@/lib/kas-shared";
+import { computeUnpaid, namaBulan, rupiah } from "@/lib/kas-shared";
 
 export const Route = createFileRoute("/belum-bayar")({
   head: () => ({
@@ -42,6 +43,7 @@ function BelumBayar() {
   const residents = useResidents();
   const contributions = useContributions();
   const waivers = useWaivers();
+  const kasbon = useKasbon();
 
   const [fMonth, setFMonth] = useState<number | null>(null);
   const [fYear, setFYear] = useState<number | null>(null);
@@ -53,6 +55,19 @@ function BelumBayar() {
         year: fYear,
       }),
     [residents.data, contributions.data, waivers.data, fMonth, fYear],
+  );
+
+  const kasbonRows = useMemo(
+    () =>
+      (kasbon.data ?? [])
+        .map((k) => ({
+          id: k.resident_id,
+          name: k.resident_name ?? "-",
+          sisa: Math.max(0, Number(k.total ?? 0) - Number(k.dibayar ?? 0)),
+        }))
+        .filter((k) => k.sisa > 0)
+        .sort((a, b) => b.sisa - a.sisa),
+    [kasbon.data],
   );
 
   const prabayar = useMemo(() => {
@@ -111,6 +126,32 @@ function BelumBayar() {
             />
           </CardContent>
         </Card>
+
+        {kasbonRows.length > 0 && (
+          <Card className="border-destructive/40">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Kasbon Belum Lunas ({kasbonRows.length})</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Sisa kasbon berkurang otomatis saat setoran bertujuan kasbon dikonfirmasi pusat.
+              </p>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="max-h-[260px] overflow-y-auto">
+                {kasbonRows.map((k) => (
+                  <div
+                    key={k.id}
+                    className="flex items-center justify-between gap-2 border-b border-border/60 px-4 py-2.5 last:border-0"
+                  >
+                    <p className="truncate font-medium">{k.name}</p>
+                    <Badge variant="destructive" className="shrink-0 tabular-nums">
+                      Sisa kasbon {rupiah(k.sisa)}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {prabayar.length > 0 && (
           <Card className="border-primary/30">
