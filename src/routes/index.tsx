@@ -4,7 +4,6 @@ import {
   ArrowUpCircle,
   Bell,
   Check,
-  Images,
 
   Landmark,
   ListChecks,
@@ -244,21 +243,13 @@ function Beranda() {
       </header>
 
       <main className="mx-auto max-w-2xl space-y-4 px-4 py-4">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           <Button asChild variant="outline" className="h-14 rounded-xl">
             <Link to="/belum-bayar" className="flex flex-col items-center justify-center gap-0.5">
               <span className="flex items-center gap-1.5 text-sm font-semibold">
                 <ListChecks className="size-4 text-destructive" /> Belum Bayar
               </span>
               <span className="text-[11px] text-muted-foreground">{unpaid.length} warga</span>
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="h-14 rounded-xl">
-            <Link to="/kegiatan" className="flex flex-col items-center justify-center gap-0.5">
-              <span className="flex items-center gap-1.5 text-sm font-semibold">
-                <Images className="size-4 text-primary" /> Kegiatan Warga
-              </span>
-              <span className="text-[11px] text-muted-foreground">Foto & video</span>
             </Link>
           </Button>
         </div>
