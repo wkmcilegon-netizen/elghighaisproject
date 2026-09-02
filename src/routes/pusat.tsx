@@ -9,7 +9,6 @@ import {
   KeyRound,
   Loader2,
   LogOut,
-  Images,
   Megaphone,
   Pencil,
   Plus,
