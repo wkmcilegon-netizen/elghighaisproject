@@ -1,3 +1,4 @@
+import { LOGO_URL, handleImageError } from "@/lib/image";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowDownCircle,
@@ -16,7 +17,6 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import logo from "@/assets/logo-rt.png";
 import { NewsNotify } from "@/components/NewsNotify";
 import { PeriodFilter } from "@/components/PeriodFilter";
 
@@ -224,7 +224,7 @@ function Beranda() {
       <header className="sticky top-0 z-30 border-b border-border/60 bg-primary text-primary-foreground shadow-sm">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
           <img
-            src={logo}
+            src={LOGO_URL} onError={handleImageError}
             alt="Logo RT 06/04 Jati Pulogadung"
             width={512}
             height={512}
