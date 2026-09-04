@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BelumBayarRouteImport } from './routes/belum-bayar'
 import { Route as PusatRouteImport } from './routes/pusat'
+import { Route as ApiPublicCleanupRouteImport } from './routes/api/public/cleanup'
 import { Route as ApiPublicLatestNewsRouteImport } from './routes/api/public/latest-news'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const PusatRoute = PusatRouteImport.update({
   path: '/pusat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCleanupRoute = ApiPublicCleanupRouteImport.update({
+  id: '/api/public/cleanup',
+  path: '/api/public/cleanup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicLatestNewsRoute = ApiPublicLatestNewsRouteImport.update({
   id: '/api/public/latest-news',
   path: '/api/public/latest-news',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/belum-bayar': typeof BelumBayarRoute
   '/pusat': typeof PusatRoute
+  '/api/public/cleanup': typeof ApiPublicCleanupRoute
   '/api/public/latest-news': typeof ApiPublicLatestNewsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/belum-bayar': typeof BelumBayarRoute
   '/pusat': typeof PusatRoute
+  '/api/public/cleanup': typeof ApiPublicCleanupRoute
   '/api/public/latest-news': typeof ApiPublicLatestNewsRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,38 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/belum-bayar': typeof BelumBayarRoute
   '/pusat': typeof PusatRoute
+  '/api/public/cleanup': typeof ApiPublicCleanupRoute
   '/api/public/latest-news': typeof ApiPublicLatestNewsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/belum-bayar' | '/pusat' | '/api/public/latest-news'
+  fullPaths:
+    | '/'
+    | '/belum-bayar'
+    | '/pusat'
+    | '/api/public/cleanup'
+    | '/api/public/latest-news'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/belum-bayar' | '/pusat' | '/api/public/latest-news'
-  id: '__root__' | '/' | '/belum-bayar' | '/pusat' | '/api/public/latest-news'
+  to:
+    | '/'
+    | '/belum-bayar'
+    | '/pusat'
+    | '/api/public/cleanup'
+    | '/api/public/latest-news'
+  id:
+    | '__root__'
+    | '/'
+    | '/belum-bayar'
+    | '/pusat'
+    | '/api/public/cleanup'
+    | '/api/public/latest-news'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BelumBayarRoute: typeof BelumBayarRoute
   PusatRoute: typeof PusatRoute
+  ApiPublicCleanupRoute: typeof ApiPublicCleanupRoute
   ApiPublicLatestNewsRoute: typeof ApiPublicLatestNewsRoute
 }
 
@@ -92,6 +118,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PusatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cleanup': {
+      id: '/api/public/cleanup'
+      path: '/api/public/cleanup'
+      fullPath: '/api/public/cleanup'
+      preLoaderRoute: typeof ApiPublicCleanupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/latest-news': {
       id: '/api/public/latest-news'
       path: '/api/public/latest-news'
@@ -106,6 +139,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BelumBayarRoute: BelumBayarRoute,
   PusatRoute: PusatRoute,
+  ApiPublicCleanupRoute: ApiPublicCleanupRoute,
   ApiPublicLatestNewsRoute: ApiPublicLatestNewsRoute,
 }
 export const routeTree = rootRouteImport
