@@ -1,3 +1,4 @@
+import { LOGO_URL, handleImageError } from "@/lib/image";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -18,7 +19,6 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import logo from "@/assets/logo-rt.png";
 import { PeriodFilter } from "@/components/PeriodFilter";
 import { SearchSelect } from "@/components/SearchSelect";
 import { Badge } from "@/components/ui/badge";
@@ -194,7 +194,7 @@ function LoginPusat({ onLogin }: { onLogin: (token: string) => void }) {
       <Card className="w-full max-w-sm">
         <CardHeader className="items-center text-center">
           <img
-            src={logo}
+            src={LOGO_URL} onError={handleImageError}
             alt="Logo RT 06/04"
             width={512}
             height={512}
@@ -343,7 +343,7 @@ function Dashboard({ token, onLogout }: { token: string; onLogout: () => void })
     <div className="min-h-screen bg-background pb-16">
       <header className="sticky top-0 z-30 border-b bg-primary text-primary-foreground">
         <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3">
-          <img src={logo} alt="Logo RT" width={512} height={512} className="size-10 rounded-full bg-primary-foreground/95 p-0.5" />
+          <img src={LOGO_URL} onError={handleImageError} alt="Logo RT" width={512} height={512} className="size-10 rounded-full bg-primary-foreground/95 p-0.5" />
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-base font-bold leading-tight">Halaman Pusat</h1>
             <p className="truncate text-xs opacity-90">KAS RT 06/04 Jati Pulogadung</p>

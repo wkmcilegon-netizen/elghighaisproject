@@ -1,8 +1,8 @@
+import { LOGO_URL, handleImageError } from "@/lib/image";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import logo from "@/assets/logo-rt.png";
 import { PeriodFilter } from "@/components/PeriodFilter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -95,7 +95,7 @@ function BelumBayar() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3">
-          <img src={logo} alt="Logo RT 06/04 Jati Pulogadung" className="size-9 rounded-lg" />
+          <img src={LOGO_URL} onError={handleImageError} alt="Logo RT 06/04 Jati Pulogadung" className="size-9 rounded-lg" />
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-sm font-bold leading-tight">Warga Belum Bayar</h1>
             <p className="truncate text-[11px] text-muted-foreground">KAS RT 06/04 Jati Pulogadung</p>
