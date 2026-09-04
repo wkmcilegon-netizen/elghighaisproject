@@ -1,11 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 const RETENTION_DAYS = 365;
+/** Riwayat keuangan dihapus per 10 tahun, dihitung mulai 2022 (2022–2031 dihapus di 2032, dst). */
+const FINANCE_EPOCH_YEAR = 2022;
+const FINANCE_PERIOD_YEARS = 10;
 
 /**
  * Pembersihan otomatis data lama (> 365 hari).
  * Dipanggil terjadwal (cron) dengan header: x-cron-secret: <LOVABLE_CRON_SECRET>
- * Data keuangan (setoran & pengeluaran) TIDAK dihapus agar saldo kas tetap benar.
+ * Riwayat setoran & pengeluaran dihapus permanen tiap 10 tahun; saldo kas tidak berkurang
+ * karena selisihnya dipindahkan ke saldo awal (opening_balance).
  */
 export const Route = createFileRoute("/api/public/cleanup")({
   server: {
@@ -88,6 +92,61 @@ export const Route = createFileRoute("/api/public/cleanup")({
           // bucket mungkin sudah tidak ada — abaikan
         }
         report["storage_files"] = removedFiles;
+
+        // 6. Riwayat keuangan > 10 tahun (siklus mulai 2022) — saldo dipertahankan
+        {
+          const nowYear = new Date().getFullYear();
+          const boundaryYear =
+            FINANCE_EPOCH_YEAR +
+            Math.floor((nowYear - FINANCE_EPOCH_YEAR) / FINANCE_PERIOD_YEARS) * FINANCE_PERIOD_YEARS;
+          const financeCutoff = `${boundaryYear}-01-01`;
+          let masuk = 0;
+          let keluar = 0;
+
+          if (boundaryYear > FINANCE_EPOCH_YEAR) {
+            const { data: oldContrib, error: cErr } = await supabaseAdmin
+              .from("contributions")
+              .delete()
+              .lt("sent_date", financeCutoff)
+              .select("id, amount, status");
+            if (cErr) errors.push(`contributions: ${cErr.message}`);
+            for (const r of oldContrib ?? []) {
+              if (r.status === "approved") masuk += Number(r.amount ?? 0);
+            }
+            report["contributions"] = oldContrib?.length ?? 0;
+
+            const { data: oldExp, error: eErr } = await supabaseAdmin
+              .from("expenses")
+              .delete()
+              .lt("spend_date", financeCutoff)
+              .select("id, amount");
+            if (eErr) errors.push(`expenses: ${eErr.message}`);
+            for (const r of oldExp ?? []) keluar += Number(r.amount ?? 0);
+            report["expenses"] = oldExp?.length ?? 0;
+
+            if ((oldContrib?.length ?? 0) + (oldExp?.length ?? 0) > 0) {
+              const { data: cfg } = await supabaseAdmin
+                .from("app_config")
+                .select("opening_balance")
+                .eq("id", 1)
+                .maybeSingle();
+              const newOpening = Number(cfg?.opening_balance ?? 0) + masuk - keluar;
+              const { error: uErr } = await supabaseAdmin
+                .from("app_config")
+                .update({
+                  opening_balance: newOpening,
+                  opening_note: `Saldo awal termasuk arsip keuangan sebelum ${boundaryYear}`,
+                })
+                .eq("id", 1);
+              if (uErr) errors.push(`app_config: ${uErr.message}`);
+              console.log(
+                `[cleanup] arsip keuangan < ${financeCutoff}: masuk=${masuk} keluar=${keluar} saldo_awal_baru=${newOpening}`,
+              );
+            }
+          }
+        }
+
+
 
         const total = Object.values(report).reduce((a, b) => a + b, 0);
         const summary = Object.entries(report)
