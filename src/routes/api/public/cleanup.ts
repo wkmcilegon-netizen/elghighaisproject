@@ -1,11 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 const RETENTION_DAYS = 365;
+/** Riwayat keuangan dihapus per 10 tahun, dihitung mulai 2022 (2022–2031 dihapus di 2032, dst). */
+const FINANCE_EPOCH_YEAR = 2022;
+const FINANCE_PERIOD_YEARS = 10;
 
 /**
  * Pembersihan otomatis data lama (> 365 hari).
  * Dipanggil terjadwal (cron) dengan header: x-cron-secret: <LOVABLE_CRON_SECRET>
- * Data keuangan (setoran & pengeluaran) TIDAK dihapus agar saldo kas tetap benar.
+ * Riwayat setoran & pengeluaran dihapus permanen tiap 10 tahun; saldo kas tidak berkurang
+ * karena selisihnya dipindahkan ke saldo awal (opening_balance).
  */
 export const Route = createFileRoute("/api/public/cleanup")({
   server: {
